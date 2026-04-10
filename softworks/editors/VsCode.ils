@@ -80,6 +80,7 @@ procedure(isActive()
 list(nil
 	'name "VS Code"
 	'open open
+	'openFile open
 	'StartLmgrCB StartLmgrCB
 ))
 
