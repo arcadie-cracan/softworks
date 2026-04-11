@@ -7,12 +7,12 @@ import softworks
 
 def virtue_data_reg_paths() -> Tuple[Path]:
     return (
-        files(softworks) / "python" / "SdmPy.data.reg",
-        files(softworks) / "skill" / "SdmSkill.data.reg",
-        files(softworks) / "pptx" / "SdmPptx.data.reg",
-        files(softworks) / "xlsx" / "SdmXlsx.data.reg",
-        files(softworks) / "pdf" / "SdmPdf.data.reg",
-        files(softworks) / "html" / "SdmHtml.data.reg",
+        files(softworks) / "data_reg" / "SdmPy.data.reg",
+        files(softworks) / "data_reg" / "SdmSkill.data.reg",
+        files(softworks) / "data_reg" / "SdmPptx.data.reg",
+        files(softworks) / "data_reg" / "SdmXlsx.data.reg",
+        files(softworks) / "data_reg" / "SdmPdf.data.reg",
+        files(softworks) / "data_reg" / "SdmHtml.data.reg",
         )
 
 @virtue.hookimpl

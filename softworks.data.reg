@@ -1,6 +1,6 @@
-SOFTINCLUDE $SOFTWORKS_ROOT/softworks/pptx/SdmPptx.data.reg;
-SOFTINCLUDE $SOFTWORKS_ROOT/softworks/xlsx/SdmXlsx.data.reg;
-SOFTINCLUDE $SOFTWORKS_ROOT/softworks/pdf/SdmPdf.data.reg;
-SOFTINCLUDE $SOFTWORKS_ROOT/softworks/python/SdmPy.data.reg;
-SOFTINCLUDE $SOFTWORKS_ROOT/softworks/skill/SdmSkill.data.reg;
-SOFTINCLUDE $SOFTWORKS_ROOT/softworks/html/SdmHtml.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmPy.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmSkill.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmPptx.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmXlsx.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmPdf.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmHtml.data.reg;
