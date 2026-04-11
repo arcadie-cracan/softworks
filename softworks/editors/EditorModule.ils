@@ -7,13 +7,10 @@ let((EditorModule
 	(Softworks Import['Softworks])
 	)
 
-EditorModule = let(()
+EditorModule =let((EditorModuleState ))
 
-
-procedure(New(module_symbol
+procedure(New(module_symbol module package @optional (description ""))
 	"Registers a new editor module and adds a DataTrigger function to it."
-	@key module package (description ""))
-
 	module = Module->New(module_symbol
 		?module module
 		?package package
@@ -59,8 +56,7 @@ list(nil
 	'New New
 	'DataTrigger lambda(DataTrigger
 	)
-)
-)
+))
 
 EditorModule = Module->New('EditorModule
 	?module EditorModule
