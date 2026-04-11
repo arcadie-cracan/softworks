@@ -7,7 +7,7 @@ let((EditorModule
 	(Softworks Import['Softworks])
 	)
 
-EditorModule =let(()
+EditorModule =let((EditorModuleState )
 
 procedure(New(module_symbol @key module package (description ""))
 	"Registers a new editor module and adds a DataTrigger function to it."
