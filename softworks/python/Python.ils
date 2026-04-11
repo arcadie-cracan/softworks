@@ -92,7 +92,7 @@ procedure(DataTrigger(@optional argList)
 procedure(startReader(app filePath)
 	case(app
 		(("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-		Import['Softworks]['VsCode]->open(filePath))
+		Import['Softworks]->VsCode->open(filePath))
 		(("gedit_module" "gedit_yaml" "gedit_markdown")
 			Softworks->startGedit(filePath))
 	)
