@@ -10,13 +10,13 @@ procedure(workspace_path_is_code_workspace_file_p(p "t")
 )
 
 procedure(read_first_line(fname "t")
-  let((port line))
-  when(isReadable(fname)
-    port = infile(fname)
-    line = gets(port)
-    close(port)
-    line
-  )
+  let((port line)
+    when(isReadable(fname)
+      port = infile(fname)
+      line = gets(port)
+      close(port)
+      line
+    ))
 )
 
 procedure(workspace_directory()
@@ -29,7 +29,7 @@ procedure(workspace_directory()
 )
 
 procedure(init()
-  let((target exe f line rootReady))
+  let((target exe f line rootReady)
 	; create or refresh the code workspace unless already materialized
 	target = workspace_directory()
 	exe = "python -m softworks.workspace.code_workspace"
@@ -60,7 +60,8 @@ procedure(init()
 	      warn("    Could not create softworks_workspace"))
 	  )
 	)
-))
+  )
+)
 
 list(nil
 	'init init
