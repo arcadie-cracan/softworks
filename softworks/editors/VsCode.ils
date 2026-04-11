@@ -12,33 +12,42 @@ VsCode =let((VsCodeProcess )
 procedure(open(@optional (filePath "") "t")
   "Start VS Code and open the filePath if specified"
   let((wp cli prefix cmd vscProc)
-    ; --- resolve workspace path ---
+    printf("open: A filePath=%s\n" filePath)
     wp = getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
+    printf("open: B wp=%s\n" wp)
     unless(wp
       wp = strcat(Softworks->softworksEffectiveProjectRoot() "/softworks_workspace")
       warn(sprintf(nil
         "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for VS Code." wp)))
+    printf("open: C\n")
     unless(strlen(wp) >= 16 && zerop(strcmp(substring(wp -16) ".code-workspace"))
       unless(isReadable(wp) createDirHier(wp)))
-    ; --- resolve VS Code binary ---
+    printf("open: D\n")
     cli = getShellEnvVar("SOFTWORKS_VSCODE_CLI")
+    printf("open: E cli=%s\n" cli)
     unless(cli cli = "code")
-    ; --- build extra CLI flags ---
+    printf("open: F cli=%s\n" cli)
     prefix = ""
+    printf("open: G\n")
     let(((ud  (getShellEnvVar("SOFTWORKS_VSCODE_USER_DATA_DIR")))
          (ext (getShellEnvVar("SOFTWORKS_VSCODE_EXTENSIONS_DIR")))
          extra)
+      printf("open: H ud=%s\n" ud)
       when(ud  prefix = strcat(prefix sprintf(nil " --user-data-dir \"%s\""  ud)))
+      printf("open: I prefix=%s\n" prefix)
       when(ext prefix = strcat(prefix sprintf(nil " --extensions-dir \"%s\"" ext)))
+      printf("open: J prefix=%s\n" prefix)
       extra = getShellEnvVar("SOFTWORKS_VSCODE_EXTRA_ARGS")
+      printf("open: K extra=%s\n" extra)
       when(extra prefix = strcat(prefix " " extra)))
-    ; --- build the shell command ---
+    printf("open: L prefix=%s\n" prefix)
     printf("VS Code: Opening %s in %s workspace\n" filePath wp)
     cmd = strcat("exec " cli prefix " "
       if(strlen(wp) >= 16 && zerop(strcmp(substring(wp -16) ".code-workspace")) then
         wp
       else
         strcat("--add " wp)))
+    printf("open: M cmd=%s\n" cmd)
     unless(!stringp(filePath) || zerop(strlen(filePath))
       cmd = strcat(cmd " " filePath))
     cmd = strcat(cmd "; exit")
