@@ -19,27 +19,23 @@ procedure(workspace_path_is_code_workspace_file_p(p "t")
 ; Set SOFTWORKS_VSCODE_USER_DATA_DIR and SOFTWORKS_VSCODE_EXTENSIONS_DIR in the environment.
 ; If unset, no extra flags are passed (VS Code uses its normal defaults for user-data/extensions).
 procedure(vscode_code_cli()
-  let((bin))
-  bin = getShellEnvVar("SOFTWORKS_VSCODE_CLI")
-  if(bin then
-    bin
-  else
-    "code")
+  let(((bin (getShellEnvVar("SOFTWORKS_VSCODE_CLI"))))
+    if(bin then bin else "code"))
 )
 
 procedure(vscode_code_prefix_args()
-  let((ud ext extra s))
-  ud = getShellEnvVar("SOFTWORKS_VSCODE_USER_DATA_DIR")
-  ext = getShellEnvVar("SOFTWORKS_VSCODE_EXTENSIONS_DIR")
-  s = ""
-  when(ud
-    s = strcat(s sprintf(nil " --user-data-dir \"%s\"" ud)))
-  when(ext
-    s = strcat(s sprintf(nil " --extensions-dir \"%s\"" ext)))
-  extra = getShellEnvVar("SOFTWORKS_VSCODE_EXTRA_ARGS")
-  when(extra
-    s = strcat(s " " extra))
-  s
+  let(((ud  (getShellEnvVar("SOFTWORKS_VSCODE_USER_DATA_DIR")))
+       (ext (getShellEnvVar("SOFTWORKS_VSCODE_EXTENSIONS_DIR")))
+       extra
+       (s   ""))
+    when(ud
+      s = strcat(s sprintf(nil " --user-data-dir \"%s\"" ud)))
+    when(ext
+      s = strcat(s sprintf(nil " --extensions-dir \"%s\"" ext)))
+    extra = getShellEnvVar("SOFTWORKS_VSCODE_EXTRA_ARGS")
+    when(extra
+      s = strcat(s " " extra))
+    s)
 )
 
 procedure(open(@optional (filePath "") "t")
@@ -88,24 +84,24 @@ procedure(exitCallback(o_childId x_exitStatus)
 
 procedure(setup_workspace()
   "Returns the VS Code workspace path from SOFTWORKS_VSCODE_WORKSPACE (directory or .code-workspace file)."
-  let((workspace_path))
-  workspace_path = getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
-  unless(workspace_path
-    workspace_path = Path->Cat(Softworks->softworksEffectiveProjectRoot() "softworks_workspace")
-    warn(sprintf(nil
-      "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for VS Code."
-      workspace_path))
-  )
-  if(workspace_path_is_code_workspace_file_p(workspace_path) then
-    workspace_path
-  else
-    progn(
-      unless(isReadable(workspace_path)
-        createDirHier(workspace_path))
+  let(((workspace_path (getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE"))))
+    unless(workspace_path
+      workspace_path = Path->Cat(Softworks->softworksEffectiveProjectRoot() "softworks_workspace")
+      warn(sprintf(nil
+        "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for VS Code."
+        workspace_path))
+    )
+    if(workspace_path_is_code_workspace_file_p(workspace_path) then
       workspace_path
+    else
+      progn(
+        unless(isReadable(workspace_path)
+          createDirHier(workspace_path))
+        workspace_path
+      )
     )
   )
-))
+)
 
 procedure(StartLmgrCB(_MenuName _Lib _Cell _View _a _b)
 	open())
