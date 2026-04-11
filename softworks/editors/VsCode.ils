@@ -71,4 +71,8 @@ Module->AddFunction(Softworks 'VsCode VsCode)
 ; Library Manager Menu Callbacks
 SdmVsCodeStartLmgrCB = Import['Softworks]->VsCode->StartLmgrCB
 
+; Diagnostic: confirm registration at load time
+printf("VsCode load: Import['VsCode]=%L  Import['Softworks]->VsCode=%L\n"
+  Import['VsCode] Import['Softworks]->VsCode)
+
 printf("done\n")
