@@ -139,7 +139,7 @@ let((SelectionL newForm formName)
 		?name     'FilePathField
 		?mode     'existingFile
 		?prompt   "Import File Path"
-		?defValue  strcat("/prj/" getShellEnvVar("PROJ_ID") "/doc/")
+		?defValue  softworksProjectDocDir()
 		?invisible nil 
 		?editable  t)
 		5:170 400:30 100))

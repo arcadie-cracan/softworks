@@ -31,7 +31,7 @@ procedure(uninit() let(((out t))
 ;  startReader should open any number of views when specified as additional arguments.
 procedure(DataTrigger(@optional argList)
 	let((libName cellName viewName rootType appName viewFileName
-		   projectId userName userWorkspacePath file_workspace_link_path
+		   userName userWorkspacePath file_workspace_link_path
 		   filePath fileName extension objId templateName softworks_root_path)	
 	libName = argList->libName
 	cellName = argList->cellName
@@ -40,10 +40,18 @@ procedure(DataTrigger(@optional argList)
 	appName = argList->appName
 	viewFileName = argList->viewFileId->name
 
-	projectId = getShellEnvVar("PROJ_ID")
   userName = getShellEnvVar("USER")
 
-  userWorkspacePath = strcat("/prj/" projectId "/work_libs/" userName)
+  userWorkspacePath = if(getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE") then
+    getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
+  else
+    strcat(Softworks->softworksEffectiveProjectRoot() "/softworks_workspace")
+  )
+  unless(getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
+    warn(sprintf(nil
+      "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for Python view paths."
+      userWorkspacePath))
+  )
 	; Open existing file through the workspace symbolic link or else the direct path
   if( objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
 		file_workspace_link_path = strcat(userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)

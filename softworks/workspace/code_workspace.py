@@ -1,85 +1,118 @@
 """
-Updates or creates the specified user's project code workspace
+Updates or creates the specified user's code workspace (folder layout, .vscode).
 
-The workspace is located at:
-   /prj/${PROJ_ID}/work_libs/${USER}/${PROJ_ID}_code
+**SOFTWORKS_VSCODE_WORKSPACE** should point to either:
 
-Example using it as a script:
-   python3 code_workspace.py ${PROJ_ID} ${USER}
+- a **directory** (the code workspace root; created as needed), or
+- a **.code-workspace** file (first ``folders[].path`` in the JSON is the root; relative paths
+  are resolved against the file's directory).
+
+If unset, Softworks uses ``<effective project root>/softworks_workspace`` and prints a
+warning to stderr. The effective project root is ``SOFTWORKS_PROJECT_ROOT`` when set,
+otherwise the current working directory.
+
+Example:
+   python3 -m softworks.workspace.code_workspace
+   python3 -m softworks.workspace.code_workspace --print-root
 
 """
-from importlib.resources import path
-from shutil import copyfile
-import sys
-from pathlib import Path
+from __future__ import annotations
 
-from softworks.workspace.workspace_files import dotvscode
+import json
+import os
+import sys
+from importlib.resources import path
+from pathlib import Path
+from shutil import copyfile
+
+from softworks.workspace.workspace_files import dotvscode as dotvscode_res
+import softworks.workspace.workspace_files as workspace_files_pkg
+
+
+def _effective_project_root() -> Path:
+    """SOFTWORKS_PROJECT_ROOT when set, else cwd (resolved)."""
+    r = (os.environ.get("SOFTWORKS_PROJECT_ROOT") or "").strip()
+    if r:
+        return Path(r).expanduser().resolve(strict=False)
+    return Path.cwd().resolve()
+
+
+def _root_from_code_workspace_file(ws_file: Path) -> Path:
+    data = json.loads(ws_file.read_text(encoding="utf-8"))
+    folders = data.get("folders") or []
+    if not folders:
+        return ws_file.parent
+    raw = folders[0].get("path", ".")
+    return (ws_file.parent / raw).resolve()
+
+
+def _resolve_layout() -> str:
+    """Returns the absolute code workspace root path string."""
+    sw = (os.environ.get("SOFTWORKS_VSCODE_WORKSPACE") or "").strip()
+    if not sw:
+        root = _effective_project_root()
+        fb = (root / "softworks_workspace").resolve()
+        print(
+            "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; "
+            f"using {fb} (effective project root: {root})",
+            file=sys.stderr,
+            flush=True,
+        )
+        return str(fb)
+
+    p = Path(sw).expanduser()
+    if not p.is_absolute():
+        p = Path.cwd() / p
+    p = p.resolve(strict=False)
+    name = p.name.lower()
+    if name.endswith(".code-workspace"):
+        if p.is_file():
+            root = _root_from_code_workspace_file(p)
+            return str(root)
+        return str(p.parent)
+    return str(p)
 
 
 class CodeWorkspace:
-    def __init__(self, prj_id, user) -> None:
-        self.prj_id = prj_id
-        self.user = user
-        self.user_worklib = f"/prj/{self.prj_id}/work_libs/{self.user}"
-        self.user_code_workspace = f"{self.user_worklib}/{self.prj_id}_code"
+    def __init__(self) -> None:
+        self.user_code_workspace = _resolve_layout()
 
-    def update(self):
+    def update(self) -> None:
         self._create_workspace()
-        self._update_library_links()
         self._create_dotvscode_dir()
         self._create_readme()
 
-    def _create_workspace(self):
-        user_worklib_path = Path(self.user_worklib)
-        if user_worklib_path.is_dir():
-            user_code_workspace_path = Path(self.user_code_workspace)
-            user_code_workspace_path.mkdir(exist_ok=True)
-            print(f"creating user code workspace at: '{self.user_code_workspace}'")
-        else:
-            print(f"user work library not found: '{self.user_worklib}'")
-            exit(1)
+    def _create_workspace(self) -> None:
+        code_path = Path(self.user_code_workspace)
+        code_path.mkdir(parents=True, exist_ok=True)
+        print(f"creating user code workspace at: '{self.user_code_workspace}'")
 
-    def _update_library_links(self):
-        """Updates or creates the project's library symbolic links"""
-        cds_root = f"/prj/{self.prj_id}/work_libs/{self.user}/cds"
-        sym_links = {
-            f"{self.prj_id}_work": Path(f"{cds_root}/design_controlled/{self.prj_id}_work"),
-            f"{self.prj_id}_sim": Path(f"{cds_root}/design_controlled/{self.prj_id}_sim"),
-            f"{self.prj_id}_{self.user}": Path(f"{cds_root}/design")
-        }
-
-        for name, path in sym_links.items():
-            link_path = Path(f"{self.user_code_workspace}/{name}")
-            if not link_path.is_symlink() and not link_path.exists() and path.is_dir():
-                link_path.symlink_to(path, target_is_directory=True)            
-
-    def _create_dotvscode_dir(self):
-        dotvscode = f"{self.user_code_workspace}/.vscode"
-        dotvscode_path = Path(dotvscode)
+    def _create_dotvscode_dir(self) -> None:
+        dotvscode_dir = f"{self.user_code_workspace}/.vscode"
+        dotvscode_path = Path(dotvscode_dir)
         if dotvscode_path.is_dir():
-            print(f"\tdirectory already exists at: {dotvscode}")
+            print(f"\tdirectory already exists at: {dotvscode_dir}")
             return
-        dotvscode_path.mkdir()
-        print(f"\tcreated {dotvscode}")
-        with path(dotvscode, "extensions.json") as extensions_json_path: 
-            dst = f"{dotvscode}/extensions.json"
+        dotvscode_path.mkdir(parents=True, exist_ok=True)
+        print(f"\tcreated {dotvscode_dir}")
+        with path(dotvscode_res, "extensions.json") as extensions_json_path:
+            dst = f"{dotvscode_dir}/extensions.json"
             if not Path(dst).exists():
                 copyfile(src=extensions_json_path, dst=dst)
                 print(f"\t\tcreated {dst}")
             else:
                 print(f"\t\tfile already exists at: {dst}")
 
-        with path(dotvscode, "settings.json") as settings_json_path: 
-            dst = f"{dotvscode}/settings.json"
+        with path(dotvscode_res, "settings.json") as settings_json_path:
+            dst = f"{dotvscode_dir}/settings.json"
             if not Path(dst).exists():
                 copyfile(src=settings_json_path, dst=dst)
                 print(f"\tcreated {dst}")
             else:
                 print(f"file already exists at: {dst}")
 
-
-    def _create_readme(self):
-        with path(workspace_files, "README.md") as readme_path: 
+    def _create_readme(self) -> None:
+        with path(workspace_files_pkg, "README.md") as readme_path:
             dst = f"{self.user_code_workspace}/README.md"
             if not Path(dst).exists():
                 copyfile(src=readme_path, dst=dst)
@@ -87,6 +120,11 @@ class CodeWorkspace:
             else:
                 print(f"\tfile already exists at: {dst}")
 
+
 if __name__ == "__main__":
-    code_work_space = CodeWorkspace(prj_id=sys.argv[1], user=sys.argv[2])
-    code_work_space.update()
+    args = sys.argv[1:]
+    if args and args[0] == "--print-root":
+        cw = CodeWorkspace()
+        sys.stdout.write(str(cw.user_code_workspace))
+        sys.exit(0)
+    CodeWorkspace().update()

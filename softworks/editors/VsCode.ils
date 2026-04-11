@@ -1,7 +1,6 @@
 printf("  Loading VS Code support...")
 let((VsCode
 	(module_description "Visual Studio Code")
-  (Project VrtImport['IDS]->Project)
 	(Path VrtImport['Path])
 	(Module VrtImport['Module])
 	(Str VrtImport['Str])
@@ -10,14 +9,53 @@ let((VsCode
 
 VsCode =let((VsCodeProcess )
 
+procedure(workspace_path_is_code_workspace_file_p(p "t")
+  p
+  && (strlen(p) >= 16)
+  && zerop(strcmp(substring(p -16) ".code-workspace"))
+)
+
+; Optional VS Code CLI flags (same idea as shell alias "command code --user-data-dir …").
+; Set SOFTWORKS_VSCODE_USER_DATA_DIR and SOFTWORKS_VSCODE_EXTENSIONS_DIR in the environment.
+; If unset, no extra flags are passed (VS Code uses its normal defaults for user-data/extensions).
+procedure(vscode_code_cli()
+  let((bin))
+  bin = getShellEnvVar("SOFTWORKS_VSCODE_CLI")
+  if(bin then
+    bin
+  else
+    "code")
+)
+
+procedure(vscode_code_prefix_args()
+  let((ud ext extra s))
+  ud = getShellEnvVar("SOFTWORKS_VSCODE_USER_DATA_DIR")
+  ext = getShellEnvVar("SOFTWORKS_VSCODE_EXTENSIONS_DIR")
+  s = ""
+  when(ud
+    s = strcat(s sprintf(nil " --user-data-dir \"%s\"" ud)))
+  when(ext
+    s = strcat(s sprintf(nil " --extensions-dir \"%s\"" ext)))
+  extra = getShellEnvVar("SOFTWORKS_VSCODE_EXTRA_ARGS")
+  when(extra
+    s = strcat(s " " extra))
+  s
+)
+
 procedure(open(@optional (filePath "") "t")
   "Start VS Code and open the filePath if specified"
   let((cmd process
        (workspace_path setup_workspace())
+       (cli vscode_code_cli())
+       (prefix vscode_code_prefix_args())
       )
 	print_message(strcat("Opening %s" filePath " in " workspace_path " workspace"))
 	
-	cmd = strcat("exec code --add "  workspace_path)
+	cmd = strcat("exec " cli prefix " "
+	  if(workspace_path_is_code_workspace_file_p(workspace_path) then
+	    workspace_path
+	  else
+	    strcat("--add " workspace_path)))
 	unless(Str->emptyp(filePath)
     cmd = strcat(cmd " " filePath))
   cmd = strcat(cmd "; exit")
@@ -49,20 +87,24 @@ procedure(exitCallback(o_childId x_exitStatus)
 )
 
 procedure(setup_workspace()
-  "Returns the project's VS Code workspace and creates the directory if it doesn't already exist."
-  let((workspace_path)
-  if(getShellEnvVar("SOFTWORKS_WORKSPACE_PATH") then
-		workspace_path = getShellEnvVar("SOFTWORKS_WORKSPACE_PATH")
-	else
-    workspace_path = Path->Cat(
-      Project->Path() 
-      "work_libs" 
-      getLogin()
-      strcat(Project->Name() "_code"))
-	)
-  unless(isReadable(workspace_path)
-    createDirHier(workspace_path))
-  workspace_path
+  "Returns the VS Code workspace path from SOFTWORKS_VSCODE_WORKSPACE (directory or .code-workspace file)."
+  let((workspace_path))
+  workspace_path = getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
+  unless(workspace_path
+    workspace_path = Path->Cat(Softworks->softworksEffectiveProjectRoot() "softworks_workspace")
+    warn(sprintf(nil
+      "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for VS Code."
+      workspace_path))
+  )
+  if(workspace_path_is_code_workspace_file_p(workspace_path) then
+    workspace_path
+  else
+    progn(
+      unless(isReadable(workspace_path)
+        createDirHier(workspace_path))
+      workspace_path
+    )
+  )
 ))
 
 procedure(StartLmgrCB(_MenuName _Lib _Cell _View _a _b)

@@ -134,7 +134,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		?name     'FilePathField
 		?mode     'existingFile
 		?prompt   "Import File Path"
-		?defValue  strcat("/prj/" getShellEnvVar("PROJ_ID") "/doc/")
+		?defValue  softworksProjectDocDir()
 		?invisible nil
     ?modifyCallback UpdateFilenameFromImportSelection
 		?editable  t)

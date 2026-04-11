@@ -63,12 +63,48 @@ procedure(uninitDeRegApp(viewSetup) let(((out t))
 	out
 ))
 
+; Effective project root: SOFTWORKS_PROJECT_ROOT when set, else pwd().
+procedure(softworksEffectiveProjectRoot()
+  let((r))
+  r = getShellEnvVar("SOFTWORKS_PROJECT_ROOT")
+  if(r then
+    r
+  else
+    pwd())
+)
+
+; Default directory for documentation import GUIs (PPTX/PDF/etc. file picker start path).
+; SOFTWORKS_DOC_DIR overrides; otherwise <SOFTWORKS_PROJECT_ROOT or pwd>/doc/ (warn if project root unset).
+procedure(softworksProjectDocDir()
+  let((root explicit))
+  explicit = getShellEnvVar("SOFTWORKS_DOC_DIR")
+  if(explicit && greaterp(strlen(explicit) 0) then
+    strcat(explicit "/")
+  else
+    progn(
+      root = softworksEffectiveProjectRoot()
+      if(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") then
+	strcat(root "/doc/")
+      else
+	progn(
+	  warn(sprintf(nil
+	    "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+	    pwd()))
+	  strcat(root "/doc/")
+	)
+      )
+    )
+  )
+)
+
 list(nil
 	'IdleTrigger IdleTrigger
 	'startGedit startGedit
 	'deRegSdmApp deRegSdmApp
 	'initDeRegApp initDeRegApp
 	'uninitDeRegApp uninitDeRegApp
+	'softworksProjectDocDir softworksProjectDocDir
+	'softworksEffectiveProjectRoot softworksEffectiveProjectRoot
 ))
 
 Softworks = VrtImport['Module]->New('Softworks 
@@ -78,5 +114,7 @@ Softworks = VrtImport['Module]->New('Softworks
 )
 ; Global Functions
 SdmIdleTrigger = VrtImport['Softworks]->IdleTrigger
+SoftworksProjectDocDir = VrtImport['Softworks]->softworksProjectDocDir
+SoftworksEffectiveProjectRoot = VrtImport['Softworks]->softworksEffectiveProjectRoot
 
 printf("done\n")
