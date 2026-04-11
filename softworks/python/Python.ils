@@ -13,7 +13,7 @@ Python = let((
 		("yaml_gedit" "gedit_yaml" nil "yaml")
 	("toml" "vscode_toml" "SdmPyDataTrigger" nil)
 	("markdown" "vscode_markdown" "SdmPyDataTrigger" nil)
-		("markdown_gedit" "gedit_markdown" nil "yaml")
+		("markdown_gedit" "gedit_markdown" nil "markdown")
 	)))
 
 ; Register All Python Custom Cellviews 

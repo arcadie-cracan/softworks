@@ -45,11 +45,14 @@ procedure(deRegSdmApp(viewType appName dataTrigger @optional (parentType nil))
 )
 
 ; Initialize All the custom cellviews contained in viewSetup
-;  viewSetup is a list with each element containing the definition for a view witht the form:
+;  viewSetup is a list with each element containing the definition for a view with the form:
 ;   list(viewType  appName dataTrigger parentType)
+; Each view type is always attempted regardless of whether earlier ones fail or are already
+; registered — avoiding silent skip of later types via short-circuit evaluation.
 procedure(initDeRegApp(viewSetup) let(((out t))
-	foreach(app viewSetup 
-			out = out && deRegSdmApp(car(app) cadr(app) caddr(app) cadddr(app))
+	foreach(app viewSetup
+		unless(deRegSdmApp(car(app) cadr(app) caddr(app) cadddr(app))
+			out = nil)
 	)
 	out
 ))
