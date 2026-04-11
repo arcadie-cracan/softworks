@@ -13,7 +13,7 @@ let((dir_path src_path packages)
 		"pdf/PDF.ils"
 		"pptx/PPTX.ils"
 		"xlsx/SdmXlsx.ils"
-		"html/SdmHtml.ils"
+		;"html/SdmHtml.ils" ; not yet implemented
 		;"code_workspace.il" ; Create Code Workspace
 	)
 	Import['Module]->LoadList(packages
