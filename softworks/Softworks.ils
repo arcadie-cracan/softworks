@@ -107,14 +107,14 @@ list(nil
 	'softworksEffectiveProjectRoot softworksEffectiveProjectRoot
 ))
 
-Softworks = VrtImport['Module]->New('Softworks 
+Softworks = Import['Module]->New('Softworks 
               ?module Softworks
               ?package Softworks
               ?description module_description)
 )
 ; Global Functions
-SdmIdleTrigger = VrtImport['Softworks]->IdleTrigger
-SoftworksProjectDocDir = VrtImport['Softworks]->softworksProjectDocDir
-SoftworksEffectiveProjectRoot = VrtImport['Softworks]->softworksEffectiveProjectRoot
+SdmIdleTrigger = Import['Softworks]->IdleTrigger
+SoftworksProjectDocDir = Import['Softworks]->softworksProjectDocDir
+SoftworksEffectiveProjectRoot = Import['Softworks]->softworksEffectiveProjectRoot
 
 printf("done\n")

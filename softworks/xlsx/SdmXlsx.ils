@@ -2,7 +2,7 @@ printf("  Loading XLSX support...")
 
 let((XLSX
 	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
-	(Softworks VrtImport['Softworks]))
+	(Softworks Import['Softworks]))
 	
 XLSX = let((
 	(viewSetup '(
@@ -63,6 +63,6 @@ XLSX->init()
 )
 
 ;Global functions
-SdmXLSXDataTrigger = VrtImport['Softworks]->XLSX->DataTrigger
+SdmXLSXDataTrigger = Import['Softworks]->XLSX->DataTrigger
 
 printf("done\n")

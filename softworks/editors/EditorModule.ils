@@ -1,10 +1,10 @@
 let((EditorModule
 	(module_description "Editor modules are modules with a 'name property and an'open function.  They also include a default DataTrigger.")
-  (Project VrtImport['IDS]->Project)
-	(Path VrtImport['Path])
-	(Module VrtImport['Module])
-	(Str VrtImport['Str])
-  (Softworks VrtImport['Softworks])
+  (Project Import['IDS]->Project)
+	(Path Import['Path])
+	(Module Import['Module])
+	(Str Import['Str])
+  (Softworks Import['Softworks])
   )
 
 EditorModule =let(()

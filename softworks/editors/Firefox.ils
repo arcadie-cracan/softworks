@@ -1,7 +1,7 @@
 let((Firefox
   (module_description "firefox web browser")
-  (Module VrtImport['Module])
-  (Softworks VrtImport['Softworks])
+  (Module Import['Module])
+  (Softworks Import['Softworks])
   )
 
 Firefox=let(()

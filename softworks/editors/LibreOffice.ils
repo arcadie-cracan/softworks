@@ -1,7 +1,7 @@
 let((LibreOffice
   (module_description "Libre Office Document Editor")
-  (Module VrtImport['Module])
-  (Softworks VrtImport['Softworks]))
+  (Module Import['Module])
+  (Softworks Import['Softworks]))
 
 LibreOffice=let(()
   procedure(open(filepath "s")

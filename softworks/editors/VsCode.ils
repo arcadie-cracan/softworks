@@ -1,10 +1,10 @@
 printf("  Loading VS Code support...")
 let((VsCode
 	(module_description "Visual Studio Code")
-	(Path VrtImport['Path])
-	(Module VrtImport['Module])
-	(Str VrtImport['Str])
-  (Softworks VrtImport['Softworks])
+	(Path Import['Path])
+	(Module Import['Module])
+	(Str Import['Str])
+  (Softworks Import['Softworks])
   )
 
 VsCode =let((VsCodeProcess )
@@ -134,6 +134,6 @@ Module->AddItem(Softworks 'VsCode VsCode)
 )
 
 ; Library Manager Menu Callbacks
-SdmVsCodeStartLmgrCB = VrtImport['Softworks]->VsCode->StartLmgrCB
+SdmVsCodeStartLmgrCB = Import['Softworks]->VsCode->StartLmgrCB
 
 printf("done\n")

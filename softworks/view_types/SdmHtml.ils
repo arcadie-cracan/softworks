@@ -2,7 +2,7 @@ printf("  Loading HTML support...")
 
 let((HTML
 	   (module_description "Adds an HTML (*.html) view type to Virtuoso")
-	   (Softworks VrtImport['Softworks]))
+	   (Softworks Import['Softworks]))
 
 HTML = letseq((
 	(viewType "html")
@@ -33,6 +33,6 @@ HTML->init()
 )
 
 ;Global functions
-SdmHTMLDataTrigger = VrtImport['Firefox]->DataTrigger
+SdmHTMLDataTrigger = Import['Firefox]->DataTrigger
 
 printf("done\n")

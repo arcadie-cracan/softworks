@@ -1,7 +1,7 @@
 let((CodeWorkspace)
 
-CodeWorkspace = let(((Path VrtImport['Path])
-	(Softworks VrtImport['Softworks]))
+CodeWorkspace = let(((Path Import['Path])
+	(Softworks Import['Softworks]))
 
 procedure(workspace_path_is_code_workspace_file_p(p "t")
   p

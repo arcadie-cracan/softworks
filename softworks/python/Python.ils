@@ -1,7 +1,7 @@
 printf("  Loading Python support...")
 
 let((Python
-	   (Softworks VrtImport['Softworks]))
+	   (Softworks Import['Softworks]))
 
 Python = let((
 	(viewSetup '(
@@ -79,7 +79,7 @@ procedure(DataTrigger(@optional argList)
 		
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
 		  filePath = ddGetObjWritePath(objId)
-      softworks_root_path = VrtImport['Package]->GetPackageMetadata(VrtImport['Softworks])['project_root_path]
+      softworks_root_path = Import['Package]->GetPackageMetadata(Import['Softworks])['project_root_path]
 			system(sprintf(nil "cp %s/python/%s %s" softworks_root_path templateName filePath))
 			startReader(appName filePath)
 		else
@@ -92,7 +92,7 @@ procedure(DataTrigger(@optional argList)
 procedure(startReader(app filePath)
 	case(app
 		(("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-		VrtImport['Softworks]['VsCode]->open(filePath))
+		Import['Softworks]['VsCode]->open(filePath))
 		(("gedit_module" "gedit_yaml" "gedit_markdown")
 			Softworks->startGedit(filePath))
 	)
@@ -110,6 +110,6 @@ Python->init()
 )
 
 ;Global functions
-SdmPyDataTrigger = VrtImport['Softworks]->Python->DataTrigger
+SdmPyDataTrigger = Import['Softworks]->Python->DataTrigger
 
 printf("done\n")

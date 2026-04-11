@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed the calls to use the updated "VrtImport" rather than "Import" table.
+- SKILL uses Virtue’s global `Import` table again so Softworks matches **virtue-skill** from PyPI (0.4.x), which defines `Import` but not `VrtImport` (the latter exists on Virtue GitHub `master` only).
 
 ## [0.4.0] - 2023-02-10
 
