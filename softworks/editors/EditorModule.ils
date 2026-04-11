@@ -48,8 +48,7 @@ procedure(DataTrigger(module @optional argList)
 
 list(nil
 	'New New
-	'DataTrigger lambda(DataTrigger
-	)
+	'DataTrigger DataTrigger
 ))
 
 EditorModule = Module->New('EditorModule
