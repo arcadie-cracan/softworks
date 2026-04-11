@@ -92,18 +92,7 @@ procedure(DataTrigger(@optional argList)
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-      let((vscMod openFn)
-        ; Diagnostic: show what the two lookup paths return
-        printf("startReader: Import['Softworks]->VsCode = %L\n"  Import['Softworks]->VsCode)
-        printf("startReader: Import['VsCode]            = %L\n"  Import['VsCode])
-        ; Use Import['VsCode] — set directly by Module->New via hash-table assignment
-        vscMod = Import['VsCode]
-        when(tablep(vscMod)
-          openFn = vscMod->open
-          printf("startReader: openFn = %L\n" openFn)
-          when(openFn openFn(filePath)))
-        unless(tablep(vscMod)
-          warn("Softworks: VsCode module not found (Import['VsCode]=%L)" vscMod))))
+      Import['VsCode]->open(filePath))
     (("gedit_module" "gedit_yaml" "gedit_markdown")
       Softworks->startGedit(filePath))
   )
