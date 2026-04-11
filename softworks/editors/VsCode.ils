@@ -40,29 +40,32 @@ procedure(vscode_code_prefix_args()
 
 procedure(open(@optional (filePath "") "t")
   "Start VS Code and open the filePath if specified"
-  let((cmd process
-       (workspace_path setup_workspace())
-       (cli vscode_code_cli())
-       (prefix vscode_code_prefix_args())
-      )
-	print_message(strcat("Opening %s" filePath " in " workspace_path " workspace"))
-	
-	cmd = strcat("exec " cli prefix " "
-	  if(workspace_path_is_code_workspace_file_p(workspace_path) then
-	    workspace_path
-	  else
-	    strcat("--add " workspace_path)))
-	unless(Str->emptyp(filePath)
-    cmd = strcat(cmd " " filePath))
-  cmd = strcat(cmd "; exit")
-	print_message(cmd)
-
-	process = ipcBeginProcess(cmd "" 
-		outputCallback 
-		errorCallback)
-  unless(isActive()
-    VsCodeProcess = process)
-))
+  let((cmd process workspace_path cli prefix)
+    printf("VsCode: open called filePath=%s\n" filePath)
+    workspace_path = setup_workspace()
+    printf("VsCode: workspace_path=%s\n" workspace_path)
+    cli = vscode_code_cli()
+    printf("VsCode: cli=%s\n" cli)
+    prefix = vscode_code_prefix_args()
+    printf("VsCode: prefix=%s\n" prefix)
+    print_message(sprintf(nil "Opening %s in %s workspace" filePath workspace_path))
+    cmd = strcat("exec " cli prefix " "
+      if(workspace_path_is_code_workspace_file_p(workspace_path) then
+        workspace_path
+      else
+        strcat("--add " workspace_path)))
+    printf("VsCode: cmd after workspace=%s\n" cmd)
+    unless(Str->emptyp(filePath)
+      cmd = strcat(cmd " " filePath))
+    cmd = strcat(cmd "; exit")
+    print_message(cmd)
+    process = ipcBeginProcess(cmd ""
+      outputCallback
+      errorCallback)
+    unless(isActive()
+      VsCodeProcess = process)
+  )
+)
 
 procedure(outputCallback(o_childId t_data)
   "Echo all of the stdout from VS Code in the CIW"
