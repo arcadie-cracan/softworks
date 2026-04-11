@@ -3,63 +3,42 @@ let((CodeWorkspace)
 CodeWorkspace = let(((Path Import['Path])
 	(Softworks Import['Softworks]))
 
-procedure(workspace_path_is_code_workspace_file_p(p "t")
-  p
-  && (strlen(p) >= 16)
-  && zerop(strcmp(substring(p -16) ".code-workspace"))
-)
-
-procedure(read_first_line(fname "t")
-  let((port line)
-    when(isReadable(fname)
-      port = infile(fname)
-      line = gets(port)
-      close(port)
-      line
-    ))
-)
-
-procedure(workspace_directory()
-	cond(
-		(getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
-		  getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE"))
-		('t 
-			Path->Cat(Softworks->softworksEffectiveProjectRoot() "softworks_workspace"))
-	)
-)
-
 procedure(init()
-  let((target exe f line rootReady)
-	; create or refresh the code workspace unless already materialized
-	target = workspace_directory()
-	exe = "python -m softworks.workspace.code_workspace"
-	cond(
-	  (workspace_path_is_code_workspace_file_p(target)
-	    rootReady = nil
-	    when(isFile(target)
-	      f = sprintf(nil "/tmp/sw_ws_root_%s_%d"
-	        getShellEnvVar("USER") random(1000000))
-	      system(sprintf(nil "%s --print-root > \"%s\"" exe f))
-	      line = read_first_line(f)
-	      when(line && isDir(line)
-	        rootReady = t
-	      )
-	    )
-	    unless(rootReady
-	      printf("  Creating the softworks workspace...")
-	      system(exe)
-	      printf("done\n")
-	    )
-	  )
-	  (!isDir(target)
-	    printf("  Creating the softworks workspace...")
-	    createDirHier(target)
-	    system(exe)
-	    printf("done\n")
-	    unless(isDir("./softworks_workspace")
-	      warn("    Could not create softworks_workspace"))
-	  )
-	)
+  let((target exe f port line rootReady)
+    ; create or refresh the code workspace unless already materialized
+    target = getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
+    unless(target
+      target = strcat(Softworks->softworksEffectiveProjectRoot() "/softworks_workspace"))
+    exe = "python -m softworks.workspace.code_workspace"
+    cond(
+      ; target is a .code-workspace file
+      (strlen(target) >= 16 && zerop(strcmp(substring(target -16) ".code-workspace"))
+        rootReady = nil
+        when(isFile(target)
+          f = sprintf(nil "/tmp/sw_ws_root_%s_%d"
+            getShellEnvVar("USER") random(1000000))
+          system(sprintf(nil "%s --print-root > \"%s\"" exe f))
+          when(isReadable(f)
+            port = infile(f)
+            line = gets(port)
+            close(port)
+            when(line && isDir(line)
+              rootReady = t))
+        )
+        unless(rootReady
+          printf("  Creating the softworks workspace...")
+          system(exe)
+          printf("done\n"))
+      )
+      (!isDir(target)
+        printf("  Creating the softworks workspace...")
+        createDirHier(target)
+        system(exe)
+        printf("done\n")
+        unless(isDir("./softworks_workspace")
+          warn("    Could not create softworks_workspace"))
+      )
+    )
   )
 )
 
