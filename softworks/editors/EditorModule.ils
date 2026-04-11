@@ -16,7 +16,7 @@ procedure(New(module_symbol @key module package (description ""))
 		?package package
 		?description description)
 
-	Module->AddItem(module 'DataTrigger
+	Module->AddFunction(module 'DataTrigger
 		lambda((argList) DataTrigger(module argList)))
 	module
 )
@@ -55,5 +55,5 @@ EditorModule = Module->New('EditorModule
 	?module EditorModule
 	?package Softworks
 	?description module_description)
-Module->AddItem(Softworks 'EditorModule EditorModule)
+Module->AddFunction(Softworks 'EditorModule EditorModule)
 )

@@ -22,5 +22,5 @@ Firefox = Softworks->EditorModule->New('Firefox
               ?module Firefox
               ?package Softworks
               ?description module_description)
-Module->AddItem(Softworks 'Firefox Firefox)
+Module->AddFunction(Softworks 'Firefox Firefox)
 )

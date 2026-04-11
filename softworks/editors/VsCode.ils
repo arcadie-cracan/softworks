@@ -130,7 +130,7 @@ VsCode = Module->New('VsCode
   ?module VsCode
   ?package Softworks
   ?description module_description)
-Module->AddItem(Softworks 'VsCode VsCode)
+Module->AddFunction(Softworks 'VsCode VsCode)
 )
 
 ; Library Manager Menu Callbacks

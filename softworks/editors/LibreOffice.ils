@@ -18,5 +18,5 @@ LibreOffice = Module->New('LibreOffice
            ?module LibreOffice
            ?package Softworks
            ?description module_description)
-Softworks->EditorModule->AddItem(Softworks 'LibreOffice LibreOffice)
+Module->AddFunction(Softworks 'LibreOffice LibreOffice)
 )
