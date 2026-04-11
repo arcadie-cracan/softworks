@@ -7,9 +7,9 @@ let((EditorModule
 	(Softworks Import['Softworks])
 	)
 
-EditorModule =let((EditorModuleState ))
+EditorModule =let(()
 
-procedure(New(module_symbol module package @optional (description ""))
+procedure(New(module_symbol @key module package (description ""))
 	"Registers a new editor module and adds a DataTrigger function to it."
 	module = Module->New(module_symbol
 		?module module
@@ -21,36 +21,30 @@ procedure(New(module_symbol module package @optional (description ""))
 	module
 )
 
-; Open a view with the function specified by startReader.
-; startReader should start the editor with no arguments specified.
-; startReader should open any number of views when specified as additional arguments.
+; Open a view using the editor module's open method.
+; If the view file cannot be found, the new-view GUI is shown instead.
 procedure(DataTrigger(module @optional argList)
-	"Open a view using the open method of the specified editor module.
-	 If the view cannot be opened, the new-view GUI is shown."
-	let(((file nil)
-		(fileName nil)
-		(objId nil)
-		(libName argList->libName)
+	"Open a view using the open method of the specified editor module."
+	let((file fileName objId
+		(libName  argList->libName)
 		(cellName argList->cellName)
 		(viewName argList->viewName)
 		(rootType argList->rootType)
-		(appName argList->appName)
+		(appName  argList->appName)
 		(viewFileName argList->viewFileId->name))
-	(progn
-		(if(objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
+		if(objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
 			file = ddGetObjWritePath(objId)
 			if(isFile(file) then
 				module->open(file)
 			else
-				warn(sprintf(nil
-					"Warning, couldn't open %s / %s / %s as an editor view"
+				warn("Softworks: could not open %s/%s/%s as an editor view."
 					libName cellName viewName))
 		else
 			SdmCombinedGUI(libName cellName viewName)
 		)
 		t
 	)
-))
+)
 
 list(nil
 	'New New
