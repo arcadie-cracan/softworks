@@ -35,8 +35,10 @@ procedure(init()
         createDirHier(target)
         system(exe)
         printf("done\n")
-        unless(isDir("./softworks_workspace")
-          warn("    Could not create softworks_workspace"))
+        unless(isDir(target)
+          warn(sprintf(nil
+            "    Could not create workspace directory (SOFTWORKS_VSCODE_WORKSPACE): %s"
+            target)))
       )
     )
   )
