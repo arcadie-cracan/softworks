@@ -57,9 +57,9 @@ procedure(DataTrigger(@optional argList)
 		file_workspace_link_path = strcat(userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
     filePath = ddGetObjWritePath(objId)
 		if(isFile(file_workspace_link_path) then
-		  startReader(appName file_workspace_link_path)
+		  Import['Softworks]->Python->startReader(appName file_workspace_link_path)
 		else if(isFile(filePath) then
-			startReader(appName filePath)
+			Import['Softworks]->Python->startReader(appName filePath)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a Python view", 
 			     libName cellName viewName)))
@@ -81,7 +81,7 @@ procedure(DataTrigger(@optional argList)
 		  filePath = ddGetObjWritePath(objId)
       softworks_root_path = Import['Package]->GetPackageMetadata(Import['Softworks])['project_root_path]
 			system(sprintf(nil "cp %s/python/%s %s" softworks_root_path templateName filePath))
-			startReader(appName filePath)
+			Import['Softworks]->Python->startReader(appName filePath)
 		else
 			warn("Could not create the cellview file %s / %s / %s / %s" 
 			     libName cellName viewName fileName))
@@ -102,6 +102,7 @@ list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
+	'startReader startReader
 ))
 
 putprop(Softworks Python 'Python)

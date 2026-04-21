@@ -37,7 +37,7 @@ procedure(DataTrigger(@optional argList )
     	file = ddGetObjWritePath(objId)
 		; Start editor 
 		if(isFile(file) then
-			startReader(appName file)
+			Import['Softworks]->PDF->startReader(appName file)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PDF view", libName cellName viewName))
 	else
@@ -55,6 +55,7 @@ list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
+	'startReader startReader
 ))
 
 putprop(Softworks PDF 'PDF)
