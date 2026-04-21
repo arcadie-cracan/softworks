@@ -117,6 +117,8 @@ Softworks = Import['Module]->New('Softworks
 ; Global Functions
 SdmIdleTrigger = Import['Softworks]->IdleTrigger
 SoftworksProjectDocDir = Import['Softworks]->softworksProjectDocDir
+; Lowercase alias: NewDocViewGUI / xlsx / doc GUIs call softworksProjectDocDir() (SKILL symbols are case-sensitive).
+softworksProjectDocDir = Import['Softworks]->softworksProjectDocDir
 SoftworksEffectiveProjectRoot = Import['Softworks]->softworksEffectiveProjectRoot
 
 printf("done\n")
