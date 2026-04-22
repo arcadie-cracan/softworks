@@ -30,31 +30,41 @@ procedure(DataTrigger(@optional argList)
     viewName = argList->viewName
 	rootType = argList->rootType
 	appName = argList->appName
-	viewFileName = argList->viewFileId->name
+	viewFileName = if(argList->viewFileId then argList->viewFileId->name else nil)
 
-	Import['Softworks]->softworksDebugWarn(sprintf(nil
-	  "SdmXLSXDataTrigger enter lib=%L cell=%L view=%L viewFile=%L app=%L rootType=%L"
-	  libName cellName viewName viewFileName appName rootType))
+	when(getShellEnvVar("SOFTWORKS_DEBUG")
+	  warn(sprintf(nil
+	    "Softworks DEBUG: SdmXLSXDataTrigger enter lib=%L cell=%L view=%L viewFile=%L app=%L rootType=%L"
+	    libName cellName viewName viewFileName appName rootType)))
 
     if( objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
 		; Open existing file
     	file = ddGetObjWritePath(objId)
-	Import['Softworks]->softworksDebugWarn(sprintf(nil
-	  "SdmXLSXDataTrigger OPEN branch objId=%L file=%L isFile=%L"
-	  objId file (isFile(file))))
+	when(getShellEnvVar("SOFTWORKS_DEBUG")
+	  warn(sprintf(nil
+	    "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L isFile=%L"
+	    objId file (isFile(file)))))
 		; Start editor 
 		if(isFile(file) then
-			Import['Softworks]->softworksDebugWarn(sprintf(nil
-			  "SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
-			  appName file))
-			Import['Softworks]->XLSX->startReader(appName file)
+			when(getShellEnvVar("SOFTWORKS_DEBUG")
+			  warn(sprintf(nil
+			    "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
+			    appName file)))
+			if(Import['Softworks]->XLSX->startReader then
+			  Import['Softworks]->XLSX->startReader(appName file)
+			else
+			  warn("Softworks: XLSX->startReader is nil; reinstall/upgrade softworks package"))
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
-		Import['Softworks]->softworksDebugWarn(sprintf(nil
-		  "SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
-		  libName cellName viewName))
-		Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
+		when(getShellEnvVar("SOFTWORKS_DEBUG")
+		  warn(sprintf(nil
+		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
+		    libName cellName viewName)))
+		if(Import['Softworks]->NewDocViewGUI->CombinedGUI then
+		  Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
+		else
+		  warn("Softworks: NewDocViewGUI->CombinedGUI is nil; check NewDocViewGUI.ils loaded"))
 	)
 	t
 ))
