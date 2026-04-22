@@ -45,7 +45,7 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PPTX view", libName cellName viewName))
 	else
-		SdmCombinedGUI(libName cellName viewName )
+		Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 	)
 	t
 ))

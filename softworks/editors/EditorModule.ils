@@ -40,7 +40,7 @@ procedure(DataTrigger(module @optional argList)
 				warn("Softworks: could not open %s/%s/%s as an editor view."
 					libName cellName viewName))
 		else
-			SdmCombinedGUI(libName cellName viewName)
+			Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 		)
 		t
 	)

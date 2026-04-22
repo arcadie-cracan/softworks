@@ -42,7 +42,7 @@ procedure(DataTrigger(@optional argList )
 			warn("Warning, couldn't open %s / %s / %s as a PDF view", libName cellName viewName))
 	else
 		; Create a new file by copying a template
-		SdmCombinedGUI(libName cellName viewName )
+		Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 	)
 	t
 ))
