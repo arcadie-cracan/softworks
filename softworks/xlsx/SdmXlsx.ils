@@ -35,7 +35,12 @@ procedure(DataTrigger(@optional argList)
     viewName = argList->viewName
 	rootType = argList->rootType
 	appName = argList->appName
-	viewFileName = if(argList->viewFileId then argList->viewFileId->name else nil)
+	; viewFileId is a dd object on argList: use ~>name, not ->name (avoids "not a function - nil").
+	viewFileName = let((vf)
+	  vf = argList->viewFileId
+	  if(not(vf) then argList->fileName
+	  else if(stringp(vf) then vf
+	  else vf~>name)))
 	; Nested when (not and): must never evaluate Softworks->... when Softworks is nil.
 	; Softworks is the outer-let binding (same object as Import['Softworks] at load).
 	startReaderFn = when(Softworks
@@ -45,27 +50,32 @@ procedure(DataTrigger(@optional argList)
 	  when(Softworks->NewDocViewGUI
 	    Softworks->NewDocViewGUI->CombinedGUI))
 
-	when(getShellEnvVar("SOFTWORKS_DEBUG")
-	  warn(sprintf(nil
-	    "Softworks DEBUG: SdmXLSXDataTrigger enter lib=%L cell=%L view=%L viewFile=%L app=%L rootType=%L"
-	    libName cellName viewName viewFileName appName rootType)))
+	when(getd('getShellEnvVar)
+	  when(getShellEnvVar("SOFTWORKS_DEBUG")
+	    warn(sprintf(nil
+	      "Softworks DEBUG: SdmXLSXDataTrigger enter lib=%L cell=%L view=%L viewFile=%L app=%L rootType=%L"
+	      libName cellName viewName viewFileName appName rootType))))
 
-    if( objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
+	objId = when(getd('ddGetObj)
+	  ddGetObj(libName cellName viewName viewFileName nil "r"))
+	if(objId then
 		; Open existing file
-    	file = ddGetObjWritePath(objId)
+    	file = when(getd('ddGetObjWritePath) ddGetObjWritePath(objId))
 	fileReadable = if(file then
 	  if(getd('isFile) then isFile(file) else nil)
 	else nil)
-	when(getShellEnvVar("SOFTWORKS_DEBUG")
-	  warn(sprintf(nil
-	    "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L fileReadable=%L"
-	    objId file fileReadable)))
+	when(getd('getShellEnvVar)
+	  when(getShellEnvVar("SOFTWORKS_DEBUG")
+	    warn(sprintf(nil
+	      "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L fileReadable=%L"
+	      objId file fileReadable))))
 		; Start editor 
 		if(fileReadable then
-			when(getShellEnvVar("SOFTWORKS_DEBUG")
-			  warn(sprintf(nil
-			    "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
-			    appName file)))
+			when(getd('getShellEnvVar)
+			  when(getShellEnvVar("SOFTWORKS_DEBUG")
+			    warn(sprintf(nil
+			      "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
+			      appName file))))
 			if(startReaderFn then
 			  startReaderFn(appName file)
 			else
@@ -73,10 +83,11 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
-		when(getShellEnvVar("SOFTWORKS_DEBUG")
-		  warn(sprintf(nil
-		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
-		    libName cellName viewName)))
+		when(getd('getShellEnvVar)
+		  when(getShellEnvVar("SOFTWORKS_DEBUG")
+		    warn(sprintf(nil
+		      "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
+		      libName cellName viewName))))
 		if(combinedGuiFn then
 		  combinedGuiFn(libName cellName viewName)
 		else
