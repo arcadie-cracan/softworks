@@ -24,6 +24,10 @@ procedure(uninit() let(((out t))
 ;  startReader should start the editor with no arguments specified.
 ;  startReader should open any number of views when specified as additional arguments.
 procedure(DataTrigger(@optional argList)
+	if(not(argList) then
+		warn("Softworks: SdmXLSXDataTrigger called with nil argList")
+		t
+	else
 	let((libName cellName file fileName extension objId viewFileName viewName viewType appName)	
 	libName = argList->libName
 	cellName = argList->cellName
@@ -67,7 +71,7 @@ procedure(DataTrigger(@optional argList)
 		  warn("Softworks: NewDocViewGUI->CombinedGUI is nil; check NewDocViewGUI.ils loaded"))
 	)
 	t
-))
+	)))
 
 procedure(startReader(app filePath)
 	system(strcat( "libreoffice --calc " filePath))
