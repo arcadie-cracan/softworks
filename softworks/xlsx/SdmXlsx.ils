@@ -29,18 +29,21 @@ procedure(DataTrigger(@optional argList)
 		t
 	else
 	let((libName cellName file fileName extension objId viewFileName viewName viewType appName
-	     startReaderFn combinedGuiFn)
+	     startReaderFn combinedGuiFn fileReadable)
 	libName = argList->libName
 	cellName = argList->cellName
     viewName = argList->viewName
 	rootType = argList->rootType
 	appName = argList->appName
 	viewFileName = if(argList->viewFileId then argList->viewFileId->name else nil)
-	; Resolve callables without chaining past nil (-> on nil => "not a function - nil")
-	startReaderFn = when(and(Import['Softworks] Import['Softworks]->XLSX)
-	  Import['Softworks]->XLSX->startReader)
-	combinedGuiFn = when(and(Import['Softworks] Import['Softworks]->NewDocViewGUI)
-	  Import['Softworks]->NewDocViewGUI->CombinedGUI)
+	; Nested when (not and): must never evaluate Softworks->... when Softworks is nil.
+	; Softworks is the outer-let binding (same object as Import['Softworks] at load).
+	startReaderFn = when(Softworks
+	  when(Softworks->XLSX
+	    Softworks->XLSX->startReader))
+	combinedGuiFn = when(Softworks
+	  when(Softworks->NewDocViewGUI
+	    Softworks->NewDocViewGUI->CombinedGUI))
 
 	when(getShellEnvVar("SOFTWORKS_DEBUG")
 	  warn(sprintf(nil
@@ -50,12 +53,15 @@ procedure(DataTrigger(@optional argList)
     if( objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
 		; Open existing file
     	file = ddGetObjWritePath(objId)
+	fileReadable = if(file then
+	  if(getd('isFile) then isFile(file) else nil)
+	else nil)
 	when(getShellEnvVar("SOFTWORKS_DEBUG")
 	  warn(sprintf(nil
-	    "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L isFile=%L"
-	    objId file (isFile(file)))))
+	    "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L fileReadable=%L"
+	    objId file fileReadable)))
 		; Start editor 
-		if(isFile(file) then
+		if(fileReadable then
 			when(getShellEnvVar("SOFTWORKS_DEBUG")
 			  warn(sprintf(nil
 			    "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
