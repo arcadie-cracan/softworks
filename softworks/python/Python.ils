@@ -112,5 +112,6 @@ Python->init()
 
 ;Global functions
 SdmPyDataTrigger = Import['Softworks]->Python->DataTrigger
+putd('SdmPyDataTrigger SdmPyDataTrigger)
 
 printf("done\n")

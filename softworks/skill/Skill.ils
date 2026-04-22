@@ -82,5 +82,7 @@ Skill->init()
 SdmStartSkillIde = Import['Softworks]->Skill->startIDE
 SdmSkillDataTrigger = Import['Softworks]->Skill->DataTrigger
 SdmSkillppDataTrigger = Import['Softworks]->Skill->DataTrigger
+putd('SdmSkillDataTrigger SdmSkillDataTrigger)
+putd('SdmSkillppDataTrigger SdmSkillppDataTrigger)
 
 printf("done\n")

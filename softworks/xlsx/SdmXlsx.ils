@@ -50,32 +50,26 @@ procedure(DataTrigger(@optional argList)
 	  when(Softworks->NewDocViewGUI
 	    Softworks->NewDocViewGUI->CombinedGUI))
 
-	when(getd('getShellEnvVar)
-	  when(getShellEnvVar("SOFTWORKS_DEBUG")
-	    warn(sprintf(nil
-	      "Softworks DEBUG: SdmXLSXDataTrigger enter lib=%L cell=%L view=%L viewFile=%L app=%L rootType=%L"
-	      libName cellName viewName viewFileName appName rootType))))
+	when(getShellEnvVar("SOFTWORKS_DEBUG")
+	  warn(sprintf(nil
+	    "Softworks DEBUG: SdmXLSXDataTrigger enter lib=%L cell=%L view=%L viewFile=%L app=%L rootType=%L"
+	    libName cellName viewName viewFileName appName rootType)))
 
-	objId = when(getd('ddGetObj)
-	  ddGetObj(libName cellName viewName viewFileName nil "r"))
+	objId = ddGetObj(libName cellName viewName viewFileName nil "r")
 	if(objId then
 		; Open existing file
-    	file = when(getd('ddGetObjWritePath) ddGetObjWritePath(objId))
-	fileReadable = if(file then
-	  if(getd('isFile) then isFile(file) else nil)
-	else nil)
-	when(getd('getShellEnvVar)
-	  when(getShellEnvVar("SOFTWORKS_DEBUG")
-	    warn(sprintf(nil
-	      "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L fileReadable=%L"
-	      objId file fileReadable))))
+    	file = ddGetObjWritePath(objId)
+	fileReadable = if(file then isFile(file) else nil)
+	when(getShellEnvVar("SOFTWORKS_DEBUG")
+	  warn(sprintf(nil
+	    "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L fileReadable=%L"
+	    objId file fileReadable)))
 		; Start editor 
 		if(fileReadable then
-			when(getd('getShellEnvVar)
-			  when(getShellEnvVar("SOFTWORKS_DEBUG")
-			    warn(sprintf(nil
-			      "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
-			      appName file))))
+			when(getShellEnvVar("SOFTWORKS_DEBUG")
+			  warn(sprintf(nil
+			    "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
+			    appName file)))
 			if(startReaderFn then
 			  startReaderFn(appName file)
 			else
@@ -83,11 +77,10 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
-		when(getd('getShellEnvVar)
-		  when(getShellEnvVar("SOFTWORKS_DEBUG")
-		    warn(sprintf(nil
-		      "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
-		      libName cellName viewName))))
+		when(getShellEnvVar("SOFTWORKS_DEBUG")
+		  warn(sprintf(nil
+		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
+		    libName cellName viewName)))
 		if(combinedGuiFn then
 		  combinedGuiFn(libName cellName viewName)
 		else
@@ -113,7 +106,10 @@ XLSX->init()
 
 )
 
-;Global functions
+; Global alias: deRegApp passes ?dataTrigger stringToSymbol("SdmXLSXDataTrigger"), so the
+; *function cell* of that symbol must be set; plain setq/= only sets the value cell and
+; Virtuoso can still invoke (SdmXLSXDataTrigger argList) as (nil argList).
 SdmXLSXDataTrigger = Import['Softworks]->XLSX->DataTrigger
+putd('SdmXLSXDataTrigger SdmXLSXDataTrigger)
 
 printf("done\n")

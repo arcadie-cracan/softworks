@@ -65,5 +65,6 @@ PDF->init()
 
 ;Global functions
 SdmPdfDataTrigger = Import['Softworks]->PDF->DataTrigger
+putd('SdmPdfDataTrigger SdmPdfDataTrigger)
 
 printf("done\n")

@@ -69,5 +69,6 @@ PPTX->init()
 
 ;Global functions
 SdmPPTXDataTrigger = Import['Softworks]->PPTX->DataTrigger
+putd('SdmPPTXDataTrigger SdmPPTXDataTrigger)
 
 printf("done\n")
