@@ -32,16 +32,33 @@ procedure(DataTrigger(@optional argList)
 	appName = argList->appName
 	viewFileName = argList->viewFileId->name
 
+	when(softworksDebugEnabled()
+	  softworksDebugWarn(sprintf(nil
+	    "SdmXLSXDataTrigger enter lib=%s cell=%s view=%s viewFile=%s app=%s"
+	    libName cellName viewName viewFileName appName)))
+
     if( objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
 		; Open existing file
     	file = ddGetObjWritePath(objId)
+	when(softworksDebugEnabled()
+	  softworksDebugWarn(sprintf(nil
+	    "SdmXLSXDataTrigger OPEN branch objId=%L file=%L isFile=%L"
+	    objId file (isFile(file))))
 		; Start editor 
 		if(isFile(file) then
+			when(softworksDebugEnabled()
+			  softworksDebugWarn(sprintf(nil
+			    "SdmXLSXDataTrigger calling XLSX->startReader app=%s file=%L"
+			    appName file)))
 			Import['Softworks]->XLSX->startReader(appName file)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
-		SdmCombinedGUI(libName cellName viewName )
+		when(softworksDebugEnabled()
+		  softworksDebugWarn(sprintf(nil
+		    "SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%s cell=%s view=%s"
+		    libName cellName viewName)))
+		Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 	)
 	t
 ))

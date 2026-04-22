@@ -249,9 +249,11 @@ list(nil
 ))
 
 putprop(Import['Softworks] NewDocViewGUI 'NewDocViewGUI)
-
+	; Bind immediately after putprop so SdmCombinedGUI is never left nil if
+	; later load/eval order differs; data triggers also call NewDocViewGUI->CombinedGUI directly.
+	SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
+	when(softworksDebugEnabled()
+	  softworksDebugWarn(sprintf(nil
+	    "NewDocViewGUI loaded; SdmCombinedGUI is %s"
+	    (if(SdmCombinedGUI then "non-nil" else "NIL")))))
 )
-
-; Export these as global functions since the library manager init 
-;  file does not seem to support SKILL++ or the InScheme() function
-SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
