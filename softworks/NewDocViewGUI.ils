@@ -252,8 +252,10 @@ putprop(Import['Softworks] NewDocViewGUI 'NewDocViewGUI)
 	; Bind immediately after putprop so SdmCombinedGUI is never left nil if
 	; later load/eval order differs; data triggers also call NewDocViewGUI->CombinedGUI directly.
 	SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
-	when(softworksDebugEnabled()
-	  softworksDebugWarn(sprintf(nil
-	    "NewDocViewGUI loaded; SdmCombinedGUI is %s"
-	    (if(SdmCombinedGUI then "non-nil" else "NIL")))))
+	; Do not call global softworksDebugWarn here (may be nil at load order); getenv only.
+	let(((swDbg (getShellEnvVar("SOFTWORKS_DEBUG"))))
+	  when(swDbg
+	    when(greaterp(strlen(swDbg) 0)
+	      warn(strcat("Softworks DEBUG: NewDocViewGUI loaded; SdmCombinedGUI="
+		(if(SdmCombinedGUI then "non-nil" else "NIL"))))))
 )

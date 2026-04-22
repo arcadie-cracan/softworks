@@ -102,12 +102,14 @@ procedure(softworksProjectDocDir()
 ; Optional CIW tracing: set shell env SOFTWORKS_DEBUG to any non-empty string before Virtuoso.
 procedure(softworksDebugEnabled()
   let(((v (getShellEnvVar("SOFTWORKS_DEBUG"))))
-    and(v greaterp(strlen(v) 0))))
+    if(v then greaterp(strlen(v) 0) else nil)))
 
 procedure(softworksDebugWarn(msg)
   "Emit one line to CIW via warn when SOFTWORKS_DEBUG is set (msg should be a single string)."
-  when(softworksDebugEnabled()
-    warn(strcat("Softworks DEBUG: " msg))))
+  let(((v (getShellEnvVar("SOFTWORKS_DEBUG"))))
+    when(v
+      when(greaterp(strlen(v) 0)
+        warn(strcat("Softworks DEBUG: " msg))))))
 
 list(nil
 	'IdleTrigger IdleTrigger
