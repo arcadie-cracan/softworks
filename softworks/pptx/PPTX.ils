@@ -50,11 +50,6 @@ procedure(DataTrigger(@optional argList)
 	t
 ))
 
-procedure(SdmPPTXDataTrigger(@optional argList)
-	when(Softworks
-	  when(Softworks->PPTX
-	    Softworks->PPTX->DataTrigger(argList))))
-
 procedure(startReader(filePath)
 	"Opens a pptx file in Libre office."
 	system(strcat( "libreoffice --impress " filePath))
@@ -71,5 +66,10 @@ putprop(Softworks PPTX 'PPTX)
 PPTX->init()
 
 )
+
+procedure(SdmPPTXDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->PPTX
+	    Import['Softworks]->PPTX->DataTrigger(argList))))
 
 printf("done\n")

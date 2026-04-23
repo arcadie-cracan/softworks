@@ -56,16 +56,6 @@ procedure(DataTrigger(@optional argList)
 	t
 ))
 
-procedure(SdmSkillDataTrigger(@optional argList)
-	when(Softworks
-	  when(Softworks->Skill
-	    Softworks->Skill->DataTrigger(argList))))
-
-procedure(SdmSkillppDataTrigger(@optional argList)
-	when(Softworks
-	  when(Softworks->Skill
-	    Softworks->Skill->DataTrigger(argList))))
-
 ; initialize the SdmSkill views
 procedure(init()
 	Softworks->initDeRegApp(viewSetup)
@@ -87,6 +77,16 @@ putprop(Import['Softworks] Skill 'Skill)
 Skill->init()
 
 )
+
+procedure(SdmSkillDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->Skill
+	    Import['Softworks]->Skill->DataTrigger(argList))))
+
+procedure(SdmSkillppDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->Skill
+	    Import['Softworks]->Skill->DataTrigger(argList))))
 
 ;Global functions
 SdmStartSkillIde = Import['Softworks]->Skill->startIDE

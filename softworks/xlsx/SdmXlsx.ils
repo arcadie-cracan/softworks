@@ -89,13 +89,6 @@ procedure(DataTrigger(@optional argList)
 	t
 	)))
 
-; deRegApp invokes this symbol as a function — define procedure() so the function cell exists
-; (putd/value-cell assignment is not reliable across all IC builds).
-procedure(SdmXLSXDataTrigger(@optional argList)
-	when(Softworks
-	  when(Softworks->XLSX
-	    Softworks->XLSX->DataTrigger(argList))))
-
 procedure(startReader(app filePath)
 	system(strcat( "libreoffice --calc " filePath))
 )
@@ -112,5 +105,11 @@ putprop(Softworks XLSX 'XLSX)
 XLSX->init()
 
 )
+
+; Top-level procedure: DEBASE isCallable rejects nested-let procedures for ?dataTrigger.
+procedure(SdmXLSXDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->XLSX
+	    Import['Softworks]->XLSX->DataTrigger(argList))))
 
 printf("done\n")

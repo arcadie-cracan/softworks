@@ -47,11 +47,6 @@ procedure(DataTrigger(@optional argList )
 	t
 ))
 
-procedure(SdmPdfDataTrigger(@optional argList)
-	when(Softworks
-	  when(Softworks->PDF
-	    Softworks->PDF->DataTrigger(argList))))
-
 procedure(startReader(app filePath)
 	system(strcat( "firefox " filePath))
 )
@@ -67,5 +62,10 @@ putprop(Softworks PDF 'PDF)
 PDF->init()
 
 )
+
+procedure(SdmPdfDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->PDF
+	    Import['Softworks]->PDF->DataTrigger(argList))))
 
 printf("done\n")

@@ -89,11 +89,6 @@ procedure(DataTrigger(@optional argList)
 	t
 ))
 
-procedure(SdmPyDataTrigger(@optional argList)
-	when(Softworks
-	  when(Softworks->Python
-	    Softworks->Python->DataTrigger(argList))))
-
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
@@ -114,5 +109,10 @@ putprop(Softworks Python 'Python)
 Python->init()
 
 )
+
+procedure(SdmPyDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->Python
+	    Import['Softworks]->Python->DataTrigger(argList))))
 
 printf("done\n")
