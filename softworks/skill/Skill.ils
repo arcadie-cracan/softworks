@@ -1,4 +1,16 @@
 printf("  Loading Skill support...")
+
+; Defined before Skill->init() / deRegApp so ?dataTrigger is not nil at registration.
+procedure(SdmSkillDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->Skill
+	    Import['Softworks]->Skill->DataTrigger(argList))))
+
+procedure(SdmSkillppDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->Skill
+	    Import['Softworks]->Skill->DataTrigger(argList))))
+
 let((Skill
 	  (Softworks Import['Softworks]))
 
@@ -77,16 +89,6 @@ putprop(Import['Softworks] Skill 'Skill)
 Skill->init()
 
 )
-
-procedure(SdmSkillDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->Skill
-	    Import['Softworks]->Skill->DataTrigger(argList))))
-
-procedure(SdmSkillppDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->Skill
-	    Import['Softworks]->Skill->DataTrigger(argList))))
 
 ;Global functions
 SdmStartSkillIde = Import['Softworks]->Skill->startIDE

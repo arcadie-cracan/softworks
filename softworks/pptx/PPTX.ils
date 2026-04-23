@@ -1,5 +1,11 @@
 printf("  Loading PPTX support...")
 
+; Defined before PPTX->init() / deRegApp so ?dataTrigger is not nil at registration.
+procedure(SdmPPTXDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->PPTX
+	    Import['Softworks]->PPTX->DataTrigger(argList))))
+
 let((PPTX
 	   (module_description "Adds a PowerPoint (*.pptx) view type to Virtuoso")
 	   (Softworks Import['Softworks]))
@@ -66,10 +72,5 @@ putprop(Softworks PPTX 'PPTX)
 PPTX->init()
 
 )
-
-procedure(SdmPPTXDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->PPTX
-	    Import['Softworks]->PPTX->DataTrigger(argList))))
 
 printf("done\n")

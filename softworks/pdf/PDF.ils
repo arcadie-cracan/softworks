@@ -1,5 +1,12 @@
 
 printf("  Loading PDF support...")
+
+; Defined before PDF->init() / deRegApp so ?dataTrigger is not nil at registration.
+procedure(SdmPdfDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->PDF
+	    Import['Softworks]->PDF->DataTrigger(argList))))
+
 let((PDF
 	(Softworks Import['Softworks]))
 	
@@ -62,10 +69,5 @@ putprop(Softworks PDF 'PDF)
 PDF->init()
 
 )
-
-procedure(SdmPdfDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->PDF
-	    Import['Softworks]->PDF->DataTrigger(argList))))
 
 printf("done\n")

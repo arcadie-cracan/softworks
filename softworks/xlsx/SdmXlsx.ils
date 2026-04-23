@@ -1,5 +1,12 @@
 printf("  Loading XLSX support...")
 
+; Must be defined before XLSX->init() / deRegApp, or ?dataTrigger resolves to nil (eval: not a function - nil).
+; Top-level: DEBASE isCallable rejects nested-let procedures for ?dataTrigger.
+procedure(SdmXLSXDataTrigger(@optional argList)
+	when(Import['Softworks]
+	  when(Import['Softworks]->XLSX
+	    Import['Softworks]->XLSX->DataTrigger(argList))))
+
 let((XLSX
 	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
 	(Softworks Import['Softworks]))
@@ -105,11 +112,5 @@ putprop(Softworks XLSX 'XLSX)
 XLSX->init()
 
 )
-
-; Top-level procedure: DEBASE isCallable rejects nested-let procedures for ?dataTrigger.
-procedure(SdmXLSXDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->XLSX
-	    Import['Softworks]->XLSX->DataTrigger(argList))))
 
 printf("done\n")
