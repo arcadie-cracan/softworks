@@ -89,6 +89,13 @@ procedure(DataTrigger(@optional argList)
 	t
 	)))
 
+; deRegApp invokes this symbol as a function — define procedure() so the function cell exists
+; (putd/value-cell assignment is not reliable across all IC builds).
+procedure(SdmXLSXDataTrigger(@optional argList)
+	when(Softworks
+	  when(Softworks->XLSX
+	    Softworks->XLSX->DataTrigger(argList))))
+
 procedure(startReader(app filePath)
 	system(strcat( "libreoffice --calc " filePath))
 )
@@ -105,11 +112,5 @@ putprop(Softworks XLSX 'XLSX)
 XLSX->init()
 
 )
-
-; Global alias: deRegApp passes ?dataTrigger stringToSymbol("SdmXLSXDataTrigger"), so the
-; *function cell* of that symbol must be set; plain setq/= only sets the value cell and
-; Virtuoso can still invoke (SdmXLSXDataTrigger argList) as (nil argList).
-SdmXLSXDataTrigger = Import['Softworks]->XLSX->DataTrigger
-putd('SdmXLSXDataTrigger SdmXLSXDataTrigger)
 
 printf("done\n")
