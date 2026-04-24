@@ -42,7 +42,7 @@ procedure(DataTrigger(@optional argList)
 		warn("Softworks: SdmXLSXDataTrigger called with nil argList")
 		t
 	else
-	let((libName cellName file fileName extension objId viewFileName viewName viewType appName
+	let((libName cellName lname file fileName extension objId viewFileName viewName viewType appName
 	     fileReadable ndg cgui)
 	when(SdmXLSXLogTriggerP()
 	  warn(sprintf(nil "[Softworks XLSX] DataTrigger T0: argList=%L" argList)))
@@ -57,13 +57,22 @@ procedure(DataTrigger(@optional argList)
 	  if(not(vf) then argList->fileName
 	  else if(stringp(vf) then vf
 	  else vf~>name)))
+	; DEBASE often passes nil fileName and viewFileId; map file from view type (see DocPPTX.ils).
+	when(not(viewFileName)
+	  viewFileName = ddMapGetViewTypeFileName(
+	    if(argList->viewType then argList->viewType else argList->rootType)))
+	lname = if(argList->libId then argList->libId~>name else argList->libName)
 
 	when(SdmXLSXLogTriggerP()
 	  warn(sprintf(nil
 	    "[Softworks XLSX] DataTrigger T1: lib=%L cell=%L view=%L viewFileName=%L app=%L rootType=%L"
 	    libName cellName viewName viewFileName appName rootType)))
+	when(SdmXLSXLogTriggerP()
+	  warn(sprintf(nil
+	    "[Softworks XLSX] DataTrigger T1b: lname (for ddGetObj)=%L mapped viewFileName=%L"
+	    lname viewFileName)))
 
-	objId = ddGetObj(libName cellName viewName viewFileName nil "r")
+	objId = ddGetObj(lname cellName viewName viewFileName nil "r")
 	when(SdmXLSXLogTriggerP()
 	  warn(sprintf(nil "[Softworks XLSX] DataTrigger T2: ddGetObj -> objId=%L" objId)))
 	if(objId then
