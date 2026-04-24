@@ -21,6 +21,7 @@ procedure(SdmXLSXCallCombinedGUI(libName cellName viewName "SSS")
 	      warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order")
 	    )
 	)
+	)
 )
 
 ; DEBASE: ?dataTrigger must be file-scope; see SdmXLSXDataTrigger. Module 'DataTrigger uses
