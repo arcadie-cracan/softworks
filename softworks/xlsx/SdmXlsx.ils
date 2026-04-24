@@ -1,8 +1,12 @@
 printf("  Loading XLSX support...")
 
-; File-scope: DEBASE passes ?dataTrigger through isCallable/eval. Nested-let procedures
-; must not be the registered callback or a target of that callback (not a function - nil).
-; Load before XLSX->init() / deRegApp; module 'DataTrigger uses this same symbol.
+; File-scope: nested-let procs (e.g. the old module startReader) are not safe to call from
+; SdmXLSXDataTrigger; Virtuoso can report eval: not a function - nil on apply.
+procedure(SdmXLSXStartReader(app filePath)
+	system(strcat("libreoffice --calc " filePath)))
+
+; DEBASE: ?dataTrigger must be file-scope; see SdmXLSXDataTrigger. Module 'DataTrigger uses
+; this symbol. Load before XLSX->init() / deRegApp.
 procedure(SdmXLSXDataTrigger(@optional argList)
 	; Open a XLSX view with the function specified by startReader
 	if(not(argList) then
@@ -10,7 +14,7 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		t
 	else
 	let((libName cellName file fileName extension objId viewFileName viewName viewType appName
-	     startReaderFn combinedGuiFn fileReadable)
+	     fileReadable)
 	libName = argList->libName
 	cellName = argList->cellName
     viewName = argList->viewName
@@ -22,13 +26,6 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 	  if(not(vf) then argList->fileName
 	  else if(stringp(vf) then vf
 	  else vf~>name)))
-	; Nested when (not and): must never evaluate ->XLSX / NewDocViewGUI when import is nil.
-	startReaderFn = when(Import['Softworks]
-	  when(Import['Softworks]->XLSX
-	    Import['Softworks]->XLSX->startReader))
-	combinedGuiFn = when(Import['Softworks]
-	  when(Import['Softworks]->NewDocViewGUI
-	    Import['Softworks]->NewDocViewGUI->CombinedGUI))
 
 	when(getShellEnvVar("SOFTWORKS_DEBUG")
 	  warn(sprintf(nil
@@ -48,12 +45,9 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		if(fileReadable then
 			when(getShellEnvVar("SOFTWORKS_DEBUG")
 			  warn(sprintf(nil
-			    "Softworks DEBUG: SdmXLSXDataTrigger calling XLSX->startReader app=%L file=%L"
+			    "Softworks DEBUG: SdmXLSXDataTrigger calling SdmXLSXStartReader app=%L file=%L"
 			    appName file)))
-			if(startReaderFn then
-			  startReaderFn(appName file)
-			else
-			  warn("Softworks: XLSX or startReader is nil; reinstall/upgrade softworks and load order"))
+			SdmXLSXStartReader(appName file)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
@@ -61,10 +55,10 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		  warn(sprintf(nil
 		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
 		    libName cellName viewName)))
-		if(combinedGuiFn then
-		  combinedGuiFn(libName cellName viewName)
+		if(boundp('SdmCombinedGUI) && SdmCombinedGUI then
+		  SdmCombinedGUI(libName cellName viewName)
 		else
-			warn("Softworks: NewDocViewGUI or CombinedGUI is nil; check NewDocViewGUI.ils loaded"))
+			warn("Softworks: SdmCombinedGUI is nil; check NewDocViewGUI.ils is loaded (before xlsx)"))
 	)
 	t
 	)))
@@ -89,17 +83,11 @@ procedure(uninit() let(((out t))
 	Softworks->uninitDeRegApp(viewSetup)
 ))
 
-; startReader should start the editor with no arguments; additional args open more views.
-procedure(startReader(app filePath)
-	system(strcat( "libreoffice --calc " filePath))
-)
-
-
 list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger SdmXLSXDataTrigger
-	'startReader startReader
+	'startReader SdmXLSXStartReader
 ))
 
 putprop(Softworks XLSX 'XLSX)
