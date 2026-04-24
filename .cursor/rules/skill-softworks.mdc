@@ -10,7 +10,7 @@ Reference: [Da-Buche/skill-best-practices](https://github.com/Da-Buche/skill-bes
 
 ## DEBASE / data triggers (Softworks-specific)
 
-- `deRegApp` `?dataTrigger` must resolve to a **symbol** with a real callable. Prefer binding the top-level name to the **module** `DataTrigger` function object (DocPDF / `DocXpdfDataTrigger` pattern), e.g. `SdmPPTXDataTrigger = PPTX->DataTrigger` **after** the module alist is built and **before** `->init()`, not a thin `procedure` that re-dispatches to `PPTX->DataTrigger` at runtime (can yield `eval: not a function - nil` under DEBASE).
+- `deRegApp` `?dataTrigger` must resolve to a **symbol** with a real callable. For Softworks **alist** view modules, set e.g. `SdmPPTXDataTrigger = DataTrigger` in the same `let` as `procedure(DataTrigger…)`, right after the procedure definition and **before** the module `list` / `putprop` / `->init()`. On some builds `PPTX->DataTrigger` (message on the alist) is **nil**, which gives `*Error* eval: not a function - nil` under DEBASE. Use `*->DataTrigger` only where the module is a DPL/Import object (e.g. `DocXpdfDataTrigger = Import['DocPDF]->DataTrigger`). Do not use a thin `procedure` that re-dispatches to `*->DataTrigger` at runtime.
 - For nested GUI callbacks (`NewDocViewGUI->CombinedGUI`), run them from the **nested** `procedure(DataTrigger …)` in the view package, not from file-scope helpers that re-invoke nested procedures.
 
 ## Style and safety (from the guide)

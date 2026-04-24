@@ -1,7 +1,7 @@
 
 printf("  Loading PDF support...")
 
-; DocPDF style: SdmPdfDataTrigger = PDF->DataTrigger after putprop, before init.
+; SdmPdfDataTrigger: bind to DataTrigger here, not as PDF->DataTrigger (can be nil on some builds).
 
 let((PDF
 	(Softworks Import['Softworks]))
@@ -62,7 +62,6 @@ list(nil
 ))
 
 putprop(Softworks PDF 'PDF)
-SdmPdfDataTrigger = PDF->DataTrigger
 PDF->init()
 
 )

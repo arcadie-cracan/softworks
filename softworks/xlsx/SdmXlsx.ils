@@ -5,7 +5,8 @@ printf("  Loading XLSX support...")
 procedure(SdmXLSXStartReader(app filePath)
 	system(strcat("libreoffice --calc " filePath)))
 
-; DocPDF style: SdmXLSXDataTrigger = XLSX->DataTrigger (after module list), before init.
+; Set SdmXLSXDataTrigger to the procedure object here, not as XLSX->DataTrigger: on some
+; Virtuoso builds the alist "->" form returns nil, so init sees a non-function trigger.
 
 let((XLSX
 	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
@@ -79,6 +80,8 @@ procedure(DataTrigger(@optional argList)
 	t
 	)))
 
+SdmXLSXDataTrigger = DataTrigger
+
 list(nil
 	'init init
 	'uninit uninit
@@ -87,7 +90,6 @@ list(nil
 ))
 
 putprop(Softworks XLSX 'XLSX)
-SdmXLSXDataTrigger = XLSX->DataTrigger
 XLSX->init()
 
 )

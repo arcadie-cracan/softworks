@@ -1,6 +1,6 @@
 printf("  Loading Python support...")
 
-; DocPDF style: SdmPyDataTrigger = Python->DataTrigger after putprop, before init.
+; SdmPyDataTrigger: assign from procedure DataTrigger; Python->DataTrigger can be nil on some builds.
 
 let((Python
 	   (Softworks Import['Softworks]))
@@ -108,7 +108,6 @@ list(nil
 ))
 
 putprop(Softworks Python 'Python)
-SdmPyDataTrigger = Python->DataTrigger
 Python->init()
 
 )

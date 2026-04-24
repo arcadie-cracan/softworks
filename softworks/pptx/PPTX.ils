@@ -1,7 +1,7 @@
 printf("  Loading PPTX support...")
 
-; DocPDF style: SdmPPTXDataTrigger is the module DataTrigger function object (not a forwarder).
-; A procedure that calls PPTX->DataTrigger at runtime can see nil/apply errors under DEBASE.
+; Bind SdmPPTXDataTrigger to the DataTrigger procedure here; *->DataTrigger on the alist
+; can be nil on some builds, which breaks deRegSdmApp / DEBASE.
 
 let((PPTX
 	   (module_description "Adds a PowerPoint (*.pptx) view type to Virtuoso")
@@ -53,6 +53,8 @@ procedure(DataTrigger(@optional argList)
 	t
 ))
 
+SdmPPTXDataTrigger = DataTrigger
+
 procedure(startReader(filePath)
 	"Opens a pptx file in Libre office."
 	system(strcat( "libreoffice --impress " filePath))
@@ -66,7 +68,6 @@ list(nil
 ))
 
 putprop(Softworks PPTX 'PPTX)
-SdmPPTXDataTrigger = PPTX->DataTrigger
 PPTX->init()
 
 )

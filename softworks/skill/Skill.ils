@@ -1,6 +1,6 @@
 printf("  Loading Skill support...")
 
-; DocPDF style: Sdm*DataTrigger = module DataTrigger (same proc for skill and skillpp).
+; SdmSkill*DataTrigger: use DataTrigger in scope, not Skill->DataTrigger (can be nil on some builds).
 
 let((Skill
 	  (Softworks Import['Softworks]))
@@ -77,8 +77,6 @@ list(nil
 	'uninit uninit
 ))
 putprop(Import['Softworks] Skill 'Skill)
-SdmSkillDataTrigger = Skill->DataTrigger
-SdmSkillppDataTrigger = Skill->DataTrigger
 Skill->init()
 
 )
