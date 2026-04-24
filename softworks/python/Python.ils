@@ -1,10 +1,6 @@
 printf("  Loading Python support...")
 
-; Defined before Python->init() / deRegApp so ?dataTrigger is not nil at registration.
-procedure(SdmPyDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->Python
-	    Import['Softworks]->Python->DataTrigger(argList))))
+; DocPDF style: SdmPyDataTrigger = Python->DataTrigger after putprop, before init.
 
 let((Python
 	   (Softworks Import['Softworks]))
@@ -112,6 +108,7 @@ list(nil
 ))
 
 putprop(Softworks Python 'Python)
+SdmPyDataTrigger = Python->DataTrigger
 Python->init()
 
 )

@@ -5,12 +5,7 @@ printf("  Loading XLSX support...")
 procedure(SdmXLSXStartReader(app filePath)
 	system(strcat("libreoffice --calc " filePath)))
 
-; DEBASE ?dataTrigger must be a file-scope name; the real work is in XLSX->DataTrigger
-; (nested), same pattern as PPTX. Load before XLSX->init() / deRegApp.
-procedure(SdmXLSXDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->XLSX
-	    Import['Softworks]->XLSX->DataTrigger(argList))))
+; DocPDF style: SdmXLSXDataTrigger = XLSX->DataTrigger (after module list), before init.
 
 let((XLSX
 	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
@@ -92,6 +87,7 @@ list(nil
 ))
 
 putprop(Softworks XLSX 'XLSX)
+SdmXLSXDataTrigger = XLSX->DataTrigger
 XLSX->init()
 
 )

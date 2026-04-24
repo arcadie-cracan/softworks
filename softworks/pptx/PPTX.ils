@@ -1,10 +1,7 @@
 printf("  Loading PPTX support...")
 
-; Defined before PPTX->init() / deRegApp so ?dataTrigger is not nil at registration.
-procedure(SdmPPTXDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->PPTX
-	    Import['Softworks]->PPTX->DataTrigger(argList))))
+; DocPDF style: SdmPPTXDataTrigger is the module DataTrigger function object (not a forwarder).
+; A procedure that calls PPTX->DataTrigger at runtime can see nil/apply errors under DEBASE.
 
 let((PPTX
 	   (module_description "Adds a PowerPoint (*.pptx) view type to Virtuoso")
@@ -69,6 +66,7 @@ list(nil
 ))
 
 putprop(Softworks PPTX 'PPTX)
+SdmPPTXDataTrigger = PPTX->DataTrigger
 PPTX->init()
 
 )

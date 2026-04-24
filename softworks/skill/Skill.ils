@@ -1,15 +1,6 @@
 printf("  Loading Skill support...")
 
-; Defined before Skill->init() / deRegApp so ?dataTrigger is not nil at registration.
-procedure(SdmSkillDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->Skill
-	    Import['Softworks]->Skill->DataTrigger(argList))))
-
-procedure(SdmSkillppDataTrigger(@optional argList)
-	when(Import['Softworks]
-	  when(Import['Softworks]->Skill
-	    Import['Softworks]->Skill->DataTrigger(argList))))
+; DocPDF style: Sdm*DataTrigger = module DataTrigger (same proc for skill and skillpp).
 
 let((Skill
 	  (Softworks Import['Softworks]))
@@ -86,6 +77,8 @@ list(nil
 	'uninit uninit
 ))
 putprop(Import['Softworks] Skill 'Skill)
+SdmSkillDataTrigger = Skill->DataTrigger
+SdmSkillppDataTrigger = Skill->DataTrigger
 Skill->init()
 
 )
