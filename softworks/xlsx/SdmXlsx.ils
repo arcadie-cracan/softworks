@@ -55,10 +55,13 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		  warn(sprintf(nil
 		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
 		    libName cellName viewName)))
-		if(boundp('SdmCombinedGUI) && SdmCombinedGUI then
+		if( (boundp('SdmCombinedGUI) && SdmCombinedGUI) then
 		  SdmCombinedGUI(libName cellName viewName)
+		else if( Import['Softworks] && Import['Softworks]->NewDocViewGUI
+			 && Import['Softworks]->NewDocViewGUI->CombinedGUI) then
+		  Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 		else
-			warn("Softworks: SdmCombinedGUI is nil; check NewDocViewGUI.ils is loaded (before xlsx)"))
+		  warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order"))
 	)
 	t
 	)))

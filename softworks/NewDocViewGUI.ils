@@ -249,7 +249,7 @@ list(nil
 ))
 
 putprop(Import['Softworks] NewDocViewGUI 'NewDocViewGUI)
-	; Bind immediately after putprop so SdmCombinedGUI is never left nil if
-	; later load/eval order differs; data triggers also call NewDocViewGUI->CombinedGUI directly.
-	SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
 )
+; Must be *outside* the package let: assigning inside the let can leave SdmCombinedGUI
+; scoped to the let, so SdmXLSX and boundp('SdmCombinedGUI) do not see it after load.
+SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
