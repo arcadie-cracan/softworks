@@ -1,7 +1,8 @@
 printf("  Loading XLSX support...")
 
-; Diagnostics: set SOFTWORKS_TRIGGER_TRACE=1 or SOFTWORKS_DEBUG=1 before Virtuoso for
-; step logs [Softworks XLSX] T0..T4. Load also warns if SdmXLSXDataTrigger is not a procedure.
+; Diagnostics: set SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_GUI_TRACE=1, or SOFTWORKS_DEBUG=1
+; (XLSX: T0–T5; NewDocViewGUI logs [Softworks GUI] … when trace is on). Load also warns if
+; SdmXLSXDataTrigger is not a procedure.
 
 ; File-scope: nested-let procs (e.g. module startReader) are not safe to call from some
 ; paths; SdmXLSXStartReader is the editor launcher for the open path.
@@ -11,6 +12,7 @@ procedure(SdmXLSXStartReader(app filePath)
 procedure(SdmXLSXLogTriggerP()
 	or(
 		getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
+		getShellEnvVar("SOFTWORKS_GUI_TRACE")
 		getShellEnvVar("SOFTWORKS_DEBUG")))
 
 ; Set SdmXLSXDataTrigger to the procedure object here, not as XLSX->DataTrigger: on some
@@ -112,8 +114,21 @@ procedure(DataTrigger(@optional argList)
 		  warn(sprintf(nil
 		    "[Softworks XLSX] DataTrigger T4: ndg=%L cgui procedurep=%L SdmCombinedGUI (boundp/procedurep)=%L/%L"
 		    ndg procedurep(cgui) boundp('SdmCombinedGUI) if(boundp('SdmCombinedGUI) then procedurep(SdmCombinedGUI) else "unbound"))))
+		when(SdmXLSXLogTriggerP()
+		  let((nd2 cg2)
+		    nd2 = Import['Softworks]->NewDocViewGUI
+		    cg2 = if(nd2 then nd2->CombinedGUI else nil)
+		    warn(sprintf(nil
+		      "[Softworks XLSX] DataTrigger T4b: Import->NewDocViewGUI=%L ->CombinedGUI procedurep=%L"
+		      nd2 procedurep(cg2)))))
 		if(procedurep(cgui) then
+			when(SdmXLSXLogTriggerP()
+			  warn(sprintf(nil
+			    "[Softworks XLSX] DataTrigger T5: calling CombinedGUI (cgui) with lib cell view=%L %L %L"
+			    libName cellName viewName)))
 			cgui(libName cellName viewName)
+			when(SdmXLSXLogTriggerP()
+			  warn("[Softworks XLSX] DataTrigger T5b: CombinedGUI (cgui) returned ok"))
 		else
 			warn(sprintf(nil
 			  "[Softworks XLSX] No callable CombinedGUI for new xlsx view (lib=%L cell=%L view=%L). ndg=%L. If NewDocViewGUI loaded, check SdmCombinedGUI / NewDocViewGUI->CombinedGUI."

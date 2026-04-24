@@ -1,3 +1,24 @@
+; Tracing: SOFTWORKS_GUI_TRACE=1, or SOFTWORKS_TRIGGER_TRACE, or SOFTWORKS_DEBUG=1
+procedure(SoftworksNewDocViewTraceP()
+  or(
+    getShellEnvVar("SOFTWORKS_GUI_TRACE")
+    getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
+    getShellEnvVar("SOFTWORKS_DEBUG")))
+
+; Traced default path for file picker; run before/instead of a bare softworksProjectDocDir() (SKILL++ function cell).
+procedure(SoftworksNewDocViewFilePathDefault()
+  when(SoftworksNewDocViewTraceP()
+    warn(sprintf(nil
+      "[Softworks GUI] defValue path: softworksProjectDocDir procedurep=%L boundp=%L"
+      procedurep(softworksProjectDocDir) boundp('softworksProjectDocDir))))
+  when(not(procedurep(softworksProjectDocDir))
+    warn(
+      "[Softworks GUI] softworksProjectDocDir is not a procedure; use Softworks.ils putd (see skill-softworks.mdc)."))
+  if(procedurep(softworksProjectDocDir) then
+    softworksProjectDocDir()
+  else
+    strcat(pwd() "/doc/")))
+
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
 NewDocViewGUI = let(()
@@ -71,9 +92,17 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 ; Choose between import or new cell
 procedure( CombinedGUI(LibSelected CellSelected ViewSelected "SSS")
 let((SelectionL newForm formName)
+	when(SoftworksNewDocViewTraceP()
+	  warn(sprintf(nil
+	    "[Softworks GUI] CombinedGUI: enter lib=%L cell=%L view=%L" LibSelected CellSelected ViewSelected)))
 	SelectionL = GUICellView(LibSelected CellSelected ViewSelected)
+	when(SoftworksNewDocViewTraceP()
+	  warn(sprintf(nil
+	    "[Softworks GUI] CombinedGUI: GUICellView returned, SelectionL car=%L" car(SelectionL))))
     ; CREATE FORM
 	formName = gensym('importGUIDocForm)
+	when(SoftworksNewDocViewTraceP()
+	  warn("[Softworks GUI] CombinedGUI: about to hiCreateAppForm + hiDisplayForm"))
 	newForm = hiCreateAppForm(
 		?name formName
 		?formTitle "Documentation Cell View"
@@ -96,6 +125,9 @@ let((SelectionL newForm formName)
 ; Create basic GUI with button for import or new view 
 procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
   let((SelectionL newForm formName) 
+	when(SoftworksNewDocViewTraceP()
+	  warn(sprintf(nil
+	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L" LibSelected CellSelected ViewSelected)))
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 		?name       'LibNameField
@@ -105,6 +137,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		?validationType	 'allowExisting
 	    ?editable  t)
 		5:10 400:30 60))
+	when(SoftworksNewDocViewTraceP()
+	  warn("[Softworks GUI] GUICellView: after ddHiCreateLibraryComboField"))
 	SelectionL = tconc(SelectionL list(ddHiCreateCellComboField(
 		?name      'CellNameField
 	    ?prompt    "Cell"
@@ -121,6 +155,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		?validationType	 'allowAny
 	    ?editable   t)
 		5:90 400:30 60))
+	when(SoftworksNewDocViewTraceP()
+	  warn("[Softworks GUI] GUICellView: after view combo, before ImportNewDropdown"))
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name      'ImportNewDropdown
 		?choices   '("Import" "New")
@@ -128,17 +164,20 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		?callback   changeViewToImport
 		?keepHistory t)
 		5:130 400:30 90))
-
+	when(SoftworksNewDocViewTraceP()
+	  warn("[Softworks GUI] GUICellView: before file path field (defValue -> SoftworksNewDocViewFilePathDefault)"))
 	; Import Cell View (Default)
 	SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
 		?name     'FilePathField
 		?mode     'existingFile
 		?prompt   "Import File Path"
-		?defValue  softworksProjectDocDir()
+		?defValue  (SoftworksNewDocViewFilePathDefault())
 		?invisible nil
     ?modifyCallback UpdateFilenameFromImportSelection
 		?editable  t)
 		5:170 400:30 100))
+	when(SoftworksNewDocViewTraceP()
+	  warn("[Softworks GUI] GUICellView: after file path field (defValue callback completed)"))
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
 	  ?prompt    "File Name"
@@ -158,7 +197,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		?enabled   t
 		?keepHistory t)
 		5:170 400:30 100))
-
+	when(SoftworksNewDocViewTraceP()
+	  warn("[Softworks GUI] GUICellView: after ContentsOption; returning field list to CombinedGUI"))
 	SelectionL
 ))
 
