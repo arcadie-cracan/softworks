@@ -1,0 +1,28 @@
+---
+description: Cadence SKILL/SKILL++ conventions for softworks (aligns with community best practices)
+globs: "**/*.{il,ils}"
+alwaysApply: false
+---
+
+# SKILL / SKILL++ in Softworks
+
+Reference: [Da-Buche/skill-best-practices](https://github.com/Da-Buche/skill-best-practices) (Cadence SKILL/SKILL++ coding advice). Prefer clarity over micro-optimisation; be explicit and grep-friendly.
+
+## DEBASE / data triggers (Softworks-specific)
+
+- `deRegApp` `?dataTrigger` must resolve to a **symbol** with a real callable. Prefer binding the top-level name to the **module** `DataTrigger` function object (DocPDF / `DocXpdfDataTrigger` pattern), e.g. `SdmPPTXDataTrigger = PPTX->DataTrigger` **after** the module alist is built and **before** `->init()`, not a thin `procedure` that re-dispatches to `PPTX->DataTrigger` at runtime (can yield `eval: not a function - nil` under DEBASE).
+- For nested GUI callbacks (`NewDocViewGUI->CombinedGUI`), run them from the **nested** `procedure(DataTrigger …)` in the view package, not from file-scope helpers that re-invoke nested procedures.
+
+## Style and safety (from the guide)
+
+- **Formatting:** use `warn` / `printf` / `sprintf` with a **format string first** (e.g. `"%s" str`), not a dynamic string as the sole first argument, when content may contain `%`.
+- **Control flow:** avoid deep `if` / `else if` ladders; prefer `cond` or `case` where it improves readability. Watch SKILL parsing: e.g. `else if( cgui) then` is wrong — `(cgui)` is a call; use `else if( cgui then` or `cond`.
+- **Let bindings:** do not use forms like `Import['...]` in invalid binding positions; assign in the body instead.
+- **Predicates / lists:** consider `(car (exists ...))` instead of `(car (setof ...))` when only the first match is needed (see guide for caveats with side effects inside the filter).
+- **Globals:** prefix Softworks top-level names (`Sdm*`, `SdmCombinedGUI`, etc.); avoid mysterious dynamic names that are hard to `grep`.
+- **Docstrings:** for new public procedures, add a short `procedure( name … )` string doc where the codebase already does so; list args/return when non-obvious.
+- **Lint:** if the project uses SKILL lint, fix issues rather than piling on exceptions.
+
+## Module objects
+
+- View packages expose `list(nil 'DataTrigger DataTrigger …)`; keep `putprop(Softworks <Module> '<Name>)` and init order consistent with `softworks.cdsinit.ils` load list.
