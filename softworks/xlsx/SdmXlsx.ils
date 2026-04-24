@@ -57,10 +57,13 @@ procedure(DataTrigger(@optional argList)
 	  if(not(vf) then argList->fileName
 	  else if(stringp(vf) then vf
 	  else vf~>name)))
-	; DEBASE often passes nil fileName and viewFileId; map file from view type (see DocPPTX.ils).
+	; DEBASE often passes nil fileName and viewFileId. ddMap can return nil for some custom types.
 	when(not(viewFileName)
 	  viewFileName = ddMapGetViewTypeFileName(
 	    if(argList->viewType then argList->viewType else argList->rootType)))
+	; Conventional per-view file name when map is still nil (e.g. datasheet -> datasheet.xlsx).
+	when(not(viewFileName)
+	  viewFileName = strcat(viewName ".xlsx"))
 	lname = if(argList->libId then argList->libId~>name else argList->libName)
 
 	when(SdmXLSXLogTriggerP()
@@ -69,10 +72,13 @@ procedure(DataTrigger(@optional argList)
 	    libName cellName viewName viewFileName appName rootType)))
 	when(SdmXLSXLogTriggerP()
 	  warn(sprintf(nil
-	    "[Softworks XLSX] DataTrigger T1b: lname (for ddGetObj)=%L mapped viewFileName=%L"
+	    "[Softworks XLSX] DataTrigger T1b: lname (for ddGetObj)=%L resolved viewFileName=%L"
 	    lname viewFileName)))
 
-	objId = ddGetObj(lname cellName viewName viewFileName nil "r")
+	; With explicit file name first; then as NewDocViewGUI/DocImport (nil nil) when that misses.
+	objId = if(viewFileName then ddGetObj(lname cellName viewName viewFileName nil "r") else nil)
+	unless(objId
+	  objId = ddGetObj(lname cellName viewName nil nil "r"))
 	when(SdmXLSXLogTriggerP()
 	  warn(sprintf(nil "[Softworks XLSX] DataTrigger T2: ddGetObj -> objId=%L" objId)))
 	if(objId then

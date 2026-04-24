@@ -111,6 +111,16 @@ procedure(softworksDebugWarn(msg)
       when(greaterp(strlen(v) 0)
         warn(strcat("Softworks DEBUG: " msg))))))
 
+; Alist/Import *->* accessors can be nil on some builds; NewDocViewGUI and others need these
+; globals to be real procedures (e.g. softworksProjectDocDir in ?defValue).
+SdmIdleTrigger = IdleTrigger
+softworksProjectDocDir = softworksProjectDocDir
+SoftworksProjectDocDir = softworksProjectDocDir
+softworksEffectiveProjectRoot = softworksEffectiveProjectRoot
+SoftworksEffectiveProjectRoot = softworksEffectiveProjectRoot
+softworksDebugEnabled = softworksDebugEnabled
+softworksDebugWarn = softworksDebugWarn
+
 list(nil
 	'IdleTrigger IdleTrigger
 	'startGedit startGedit
@@ -128,13 +138,7 @@ Softworks = Import['Module]->New('Softworks
               ?package Softworks
               ?description module_description)
 )
-; Global Functions
-SdmIdleTrigger = Import['Softworks]->IdleTrigger
-SoftworksProjectDocDir = Import['Softworks]->softworksProjectDocDir
-; Lowercase alias: NewDocViewGUI / xlsx / doc GUIs call softworksProjectDocDir() (SKILL symbols are case-sensitive).
-softworksProjectDocDir = Import['Softworks]->softworksProjectDocDir
-SoftworksEffectiveProjectRoot = Import['Softworks]->softworksEffectiveProjectRoot
-softworksDebugEnabled = Import['Softworks]->softworksDebugEnabled
-softworksDebugWarn = Import['Softworks]->softworksDebugWarn
+; SdmIdleTrigger and softworks* globals are set on the alist before list() above; do not
+; rebind from Import['Softworks]->* here (can be nil and break GUICellView / defValue).
 
 printf("done\n")
