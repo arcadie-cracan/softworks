@@ -146,7 +146,7 @@ let((SelectionL newForm formName)
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FilePathField
 	    	?prompt    "Import File Path"
-	    	?defValue  (let( (d) d = softworksProjectDocDir if(procedurep(d) then d() else strcat(pwd() "/doc/"))))
+	    	?defValue  (strcat(pwd() "/doc/"))
 	    	?editable  t) 
 		5:170 400:30 100))
 	SelectionL = tconc(SelectionL list(hiCreateButton(
