@@ -112,7 +112,8 @@ procedure(softworksDebugWarn(msg)
         warn(strcat("Softworks DEBUG: " msg))))))
 
 ; Alist/Import *->* accessors can be nil on some builds; NewDocViewGUI and others need these
-; globals to be real procedures (e.g. softworksProjectDocDir in ?defValue).
+; globals to be real procedures. Value-cell assignment is not enough in SKILL++: calls like
+; softworksProjectDocDir() use the function obarray; use putd to register the funobj.
 SdmIdleTrigger = IdleTrigger
 softworksProjectDocDir = softworksProjectDocDir
 SoftworksProjectDocDir = softworksProjectDocDir
@@ -120,6 +121,13 @@ softworksEffectiveProjectRoot = softworksEffectiveProjectRoot
 SoftworksEffectiveProjectRoot = softworksEffectiveProjectRoot
 softworksDebugEnabled = softworksDebugEnabled
 softworksDebugWarn = softworksDebugWarn
+putd('SdmIdleTrigger IdleTrigger)
+putd('softworksProjectDocDir softworksProjectDocDir)
+putd('SoftworksProjectDocDir softworksProjectDocDir)
+putd('softworksEffectiveProjectRoot softworksEffectiveProjectRoot)
+putd('SoftworksEffectiveProjectRoot softworksEffectiveProjectRoot)
+putd('softworksDebugEnabled softworksDebugEnabled)
+putd('softworksDebugWarn softworksDebugWarn)
 
 list(nil
 	'IdleTrigger IdleTrigger
