@@ -92,11 +92,11 @@ procedure(DataTrigger(@optional argList)
 		ndg = Softworks->NewDocViewGUI
 		cgui = if(ndg then ndg->CombinedGUI else nil)
 		unless(cgui
-		  cgui = if(boundp('SdmCombinedGUI) SdmCombinedGUI else nil))
+		  cgui = if(boundp('SdmCombinedGUI) then SdmCombinedGUI else nil))
 		when(SdmXLSXLogTriggerP()
 		  warn(sprintf(nil
 		    "[Softworks XLSX] DataTrigger T4: ndg=%L cgui procedurep=%L SdmCombinedGUI (boundp/procedurep)=%L/%L"
-		    ndg procedurep(cgui) boundp('SdmCombinedGUI) if(boundp('SdmCombinedGUI) procedurep(SdmCombinedGUI) else "unbound"))))
+		    ndg procedurep(cgui) boundp('SdmCombinedGUI) if(boundp('SdmCombinedGUI) then procedurep(SdmCombinedGUI) else "unbound"))))
 		if(procedurep(cgui) then
 			cgui(libName cellName viewName)
 		else
