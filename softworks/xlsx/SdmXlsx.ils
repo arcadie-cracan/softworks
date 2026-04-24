@@ -5,6 +5,23 @@ printf("  Loading XLSX support...")
 procedure(SdmXLSXStartReader(app filePath)
 	system(strcat("libreoffice --calc " filePath)))
 
+; New xlsx / import view: do not use Import['Softworks] in (let ((sw ...)) ...) — that binding
+; form is illegal in Cadence; assign in the body instead. File-scope and DEBASE-safe to call.
+procedure(SdmXLSXCallCombinedGUI(libName cellName viewName "SSS")
+	let(((sw nil) (ndg nil) (cgui nil))
+	    sw = Import['Softworks]
+	    ndg = when(sw sw->NewDocViewGUI)
+	    cgui = when(ndg ndg->CombinedGUI)
+	    if( (boundp('SdmCombinedGUI) && SdmCombinedGUI) then
+	      SdmCombinedGUI(libName cellName viewName)
+	    else if( cgui) then
+	      cgui(libName cellName viewName)
+	    else
+	      warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order")
+	    )
+	)
+)
+
 ; DEBASE: ?dataTrigger must be file-scope; see SdmXLSXDataTrigger. Module 'DataTrigger uses
 ; this symbol. Load before XLSX->init() / deRegApp.
 procedure(SdmXLSXDataTrigger(@optional argList)
@@ -55,19 +72,7 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		  warn(sprintf(nil
 		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
 		    libName cellName viewName)))
-		; Do not use Import['Softworks] inside if/else if — ] can misparse (if: too few arguments).
-		let((sw Import['Softworks])
-		     ndg
-		     cgui)
-		  ndg = when(sw sw->NewDocViewGUI)
-		  cgui = when(ndg ndg->CombinedGUI)
-		  if( (boundp('SdmCombinedGUI) && SdmCombinedGUI) then
-		    SdmCombinedGUI(libName cellName viewName)
-		  else if( cgui) then
-		    cgui(libName cellName viewName)
-		  else
-		    warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order"))
-	)
+		SdmXLSXCallCombinedGUI(libName cellName viewName)
 	)
 	t
 	)))
