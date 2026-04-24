@@ -153,11 +153,11 @@ Softworks = Import['Module]->New('Softworks
 ; cell of `softworksProjectDocDir` nil even when putd/setq set the value; `name()` then
 ; fails with "not a function - nil" in SKILL++ while procedurep is still t.
 procedure(SoftworksInvokeProjectDocDir()
-  let((d))
-  d = softworksProjectDocDir
-  if(procedurep(d) then
-    d()
-  else
-    strcat(pwd() "/doc/")))
+  let( (d)
+    d = softworksProjectDocDir
+    if(procedurep(d) then
+      d()
+    else
+      strcat(pwd() "/doc/"))))
 
 printf("done\n")
