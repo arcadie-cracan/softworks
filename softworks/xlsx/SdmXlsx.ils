@@ -1,33 +1,39 @@
 printf("  Loading XLSX support...")
 
-; File-scope: nested-let procs (e.g. the old module startReader) are not safe to call from
-; SdmXLSXDataTrigger; Virtuoso can report eval: not a function - nil on apply.
+; File-scope: nested-let procs (e.g. module startReader) are not safe to call from some
+; paths; SdmXLSXStartReader is the editor launcher for the open path.
 procedure(SdmXLSXStartReader(app filePath)
 	system(strcat("libreoffice --calc " filePath)))
 
-; New xlsx / import view: do not use Import['Softworks] in (let ((sw ...)) ...) — that binding
-; form is illegal in Cadence; assign in the body instead. File-scope and DEBASE-safe to call.
-procedure(SdmXLSXCallCombinedGUI(libName cellName viewName "SSS")
-	let(((sw nil) (ndg nil) (cgui nil))
-	    sw = Import['Softworks]
-	    ndg = when(sw sw->NewDocViewGUI)
-	    cgui = when(ndg ndg->CombinedGUI)
-	    if( (boundp('SdmCombinedGUI) && SdmCombinedGUI) then
-	      SdmCombinedGUI(libName cellName viewName)
-	    ; else if( cgui) then is wrong: (cgui) is a zero-argument *call* in SKILL, not a test
-	    else if( cgui then
-	      cgui(libName cellName viewName)
-	    else
-	      warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order")
-	    )
-	)
-	)
-)
-
-; DEBASE: ?dataTrigger must be file-scope; see SdmXLSXDataTrigger. Module 'DataTrigger uses
-; this symbol. Load before XLSX->init() / deRegApp.
+; DEBASE ?dataTrigger must be a file-scope name; the real work is in XLSX->DataTrigger
+; (nested), same pattern as PPTX. Load before XLSX->init() / deRegApp.
 procedure(SdmXLSXDataTrigger(@optional argList)
-	; Open a XLSX view with the function specified by startReader
+	when(Import['Softworks]
+	  when(Import['Softworks]->XLSX
+	    Import['Softworks]->XLSX->DataTrigger(argList))))
+
+let((XLSX
+	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
+	(Softworks Import['Softworks]))
+	
+XLSX = let((
+	(viewSetup '(
+	;(viewType  appName dataTrigger parentType)
+	("xlsx" "libreoffice_xlsx" "SdmXLSXDataTrigger" nil) 
+	)))
+
+; Register All XLSX Custom Cellviews 
+procedure(init() let(((out t))
+	Softworks->initDeRegApp(viewSetup)
+))
+
+; uninitialize all XLSX views so they can be redefined
+procedure(uninit() let(((out t))
+	Softworks->uninitDeRegApp(viewSetup)
+))
+
+; Must run in nested context so NewDocViewGUI->CombinedGUI (nested) is callable, like PPTX.
+procedure(DataTrigger(@optional argList)
 	if(not(argList) then
 		warn("Softworks: SdmXLSXDataTrigger called with nil argList")
 		t
@@ -60,7 +66,6 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 	  warn(sprintf(nil
 	    "Softworks DEBUG: SdmXLSXDataTrigger OPEN branch objId=%L file=%L fileReadable=%L"
 	    objId file fileReadable)))
-		; Start editor
 		if(fileReadable then
 			when(getShellEnvVar("SOFTWORKS_DEBUG")
 			  warn(sprintf(nil
@@ -74,35 +79,15 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		  warn(sprintf(nil
 		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
 		    libName cellName viewName)))
-		SdmXLSXCallCombinedGUI(libName cellName viewName)
+		Softworks->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 	)
 	t
 	)))
 
-let((XLSX
-	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
-	(Softworks Import['Softworks]))
-	
-XLSX = let((
-	(viewSetup '(
-	;(viewType  appName dataTrigger parentType)
-	("xlsx" "libreoffice_xlsx" "SdmXLSXDataTrigger" nil) 
-	)))
-
-; Register All XLSX Custom Cellviews 
-procedure(init() let(((out t))
-	Softworks->initDeRegApp(viewSetup)
-))
-
-; uninitialize all XLSX views so they can be redefined
-procedure(uninit() let(((out t))
-	Softworks->uninitDeRegApp(viewSetup)
-))
-
 list(nil
 	'init init
 	'uninit uninit
-	'DataTrigger SdmXLSXDataTrigger
+	'DataTrigger DataTrigger
 	'startReader SdmXLSXStartReader
 ))
 
