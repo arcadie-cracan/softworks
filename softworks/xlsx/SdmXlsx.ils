@@ -55,13 +55,19 @@ procedure(SdmXLSXDataTrigger(@optional argList)
 		  warn(sprintf(nil
 		    "Softworks DEBUG: SdmXLSXDataTrigger NEW branch -> NewDocViewGUI->CombinedGUI lib=%L cell=%L view=%L"
 		    libName cellName viewName)))
-		if( (boundp('SdmCombinedGUI) && SdmCombinedGUI) then
-		  SdmCombinedGUI(libName cellName viewName)
-		else if( Import['Softworks] && Import['Softworks]->NewDocViewGUI
-			 && Import['Softworks]->NewDocViewGUI->CombinedGUI) then
-		  Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
-		else
-		  warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order"))
+		; Do not use Import['Softworks] inside if/else if — ] can misparse (if: too few arguments).
+		let((sw Import['Softworks])
+		     ndg
+		     cgui)
+		  ndg = when(sw sw->NewDocViewGUI)
+		  cgui = when(ndg ndg->CombinedGUI)
+		  if( (boundp('SdmCombinedGUI) && SdmCombinedGUI) then
+		    SdmCombinedGUI(libName cellName viewName)
+		  else if( cgui) then
+		    cgui(libName cellName viewName)
+		  else
+		    warn("Softworks: NewDocViewGUI/CombinedGUI unavailable; check NewDocViewGUI.ils load order"))
+	)
 	)
 	t
 	)))
