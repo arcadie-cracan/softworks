@@ -5,17 +5,18 @@ procedure(SoftworksNewDocViewTraceP()
     getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
     getShellEnvVar("SOFTWORKS_DEBUG")))
 
-; Traced default path for file picker; run before/instead of a bare softworksProjectDocDir() (SKILL++ function cell).
+; Traced default path: call via SoftworksInvokeProjectDocDir (value-cell funobj), not
+; softworksProjectDocDir() (function cell) — avoids "not a function - nil" in SKILL++.
 procedure(SoftworksNewDocViewFilePathDefault()
   when(SoftworksNewDocViewTraceP()
     warn(sprintf(nil
-      "[Softworks GUI] defValue path: softworksProjectDocDir procedurep=%L boundp=%L"
+      "[Softworks GUI] defValue path: value procedurep=%L boundp=%L; invoke SoftworksInvokeProjectDocDir"
       procedurep(softworksProjectDocDir) boundp('softworksProjectDocDir))))
   when(not(procedurep(softworksProjectDocDir))
     warn(
-      "[Softworks GUI] softworksProjectDocDir is not a procedure; use Softworks.ils putd (see skill-softworks.mdc)."))
+      "[Softworks GUI] softworksProjectDocDir is not a procedure; set SOFTWORKS_DOC_DIR or check Softworks.ils putd (see skill-softworks.mdc)."))
   if(procedurep(softworksProjectDocDir) then
-    softworksProjectDocDir()
+    SoftworksInvokeProjectDocDir()
   else
     strcat(pwd() "/doc/")))
 

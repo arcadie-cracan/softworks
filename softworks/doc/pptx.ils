@@ -133,7 +133,7 @@ let((SelectionL newForm)
 		?name      'FilePathField
 	    	?prompt    "Import File Path"
 		?callback  "pptxCheckPathCB(hiGetCurrentForm())"
-	    	?defValue  softworksProjectDocDir()
+	    	?defValue  (SoftworksInvokeProjectDocDir())
 		?enabled		nil
 		?invisible	t
 	    	?editable  t) 

@@ -149,4 +149,15 @@ Softworks = Import['Module]->New('Softworks
 ; SdmIdleTrigger and softworks* globals are set on the alist before list() above; do not
 ; rebind from Import['Softworks]->* here (can be nil and break GUICellView / defValue).
 
+; Invoke the doc-path procedure via a local funobj. Some environments leave the *function*
+; cell of `softworksProjectDocDir` nil even when putd/setq set the value; `name()` then
+; fails with "not a function - nil" in SKILL++ while procedurep is still t.
+procedure(SoftworksInvokeProjectDocDir()
+  let((d))
+  d = softworksProjectDocDir
+  if(procedurep(d) then
+    d()
+  else
+    strcat(pwd() "/doc/")))
+
 printf("done\n")
