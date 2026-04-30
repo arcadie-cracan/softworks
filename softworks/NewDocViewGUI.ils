@@ -67,13 +67,13 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 			(("Power Point (*.pptx)") 
 				;shell(strcat("cp -f " getShellEnvVar("SkyVerTemplatePath") "DesignTemplate.pptx " viewFileObj~>writePath))) ; Copy blank skyworks template presentation 
 				; system(sprintf(nil "cp $SOFTWORKS_ROOT/src/skill/%s %s" templateName file))
-				shell(strcat("cp -f $SOFTWORKS_ROOT/src/pptx/pptxTemplate.pptx " viewFileObj~>writePath)))
+				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("pptx/pptxTemplate.pptx")) " " viewFileObj~>writePath)))
 			(("Excel Spreadsheet (*.xlsx)")
-				shell(strcat("cp -f $SOFTWORKS_ROOT/src/xlsx/xlsxTemplate.xlsx " viewFileObj~>writePath))) ; Copy blank Excel Worksheet
+				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("xlsx/xlsxTemplate.xlsx")) " " viewFileObj~>writePath)))
 			(("PDF (*.pdf)")
-				shell(strcat("cp -f $SOFTWORKS_ROOT/src/pdf/pdfTemplate.pdf " viewFileObj~>writePath))) ; Copy blank PDF presentation
+				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("pdf/pdfTemplate.pdf")) " " viewFileObj~>writePath)))
 			(("HTML (*.html)")
-				shell(strcat("cp -f $SOFTWORKS_ROOT/src/html/htmlTemplate.html " viewFileObj~>writePath))) ; Copy blank HTML presentation
+				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("html/htmlTemplate.html")) " " viewFileObj~>writePath)))
 		)
 		if(not(cpSuccess) then
 			error("The file copy failed.  Could not copy from %s to %s" EscapeSpecialCharacters(form->FilePathField->value) viewFileObj~>writePath)
