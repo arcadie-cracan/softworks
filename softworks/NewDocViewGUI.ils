@@ -122,10 +122,11 @@ let((SelectionL newForm formName)
 
 ; Create basic GUI with button for import or new view 
 procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
-  let((SelectionL newForm formName) 
+  let((SelectionL newForm formName defaultImportPath) 
 	when(SoftworksNewDocViewTraceP()
 	  warn(sprintf(nil
 	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L" LibSelected CellSelected ViewSelected)))
+	defaultImportPath = SoftworksNewDocViewFilePathDefault()
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 		?name       'LibNameField
@@ -164,14 +165,14 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		5:130 400:30 90))
 	when(SoftworksNewDocViewTraceP()
 	  warn("[Softworks GUI] GUICellView: before file path field (defValue -> SoftworksNewDocViewFilePathDefault)"))
-	; Import Cell View (Default)
+	; Import Cell View (Default). No ?modifyCallback: DEBASE can apply the callback return as a
+	; function (errors like not a function - t or - "/path/"). Set file name in FileNameField.
 	SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
 		?name     'FilePathField
 		?mode     'existingFile
 		?prompt   "Import File Path"
-		?defValue  (SoftworksNewDocViewFilePathDefault())
+		?defValue  defaultImportPath
 		?invisible nil
-    ?modifyCallback UpdateFilenameFromImportSelection
 		?editable  t)
 		5:170 400:30 100))
 	when(SoftworksNewDocViewTraceP()
@@ -276,27 +277,6 @@ procedure( UpdateFileContents(_field scope item)
 		 scope->ViewNameField->value = "html")
    ) ; case
 ) ; procedure
-
-; DEBASE / some Virtuoso stacks: Import['Path]->FileName is not a real procedure (invoking it
-; yields *Error* eval: not a function - t). Derive the base name with SKILL only.
-procedure(softworksBasenameFromPath(path "t")
-  if(path && greaterp(strlen(path) 0) then
-    let((norm parts base)
-      norm = pcreReplace(pcreCompile("\\\\") path "/" 0)
-      parts = parseString(norm "/")
-      base = car(reverse(parts))
-      if(base && greaterp(strlen(base) 0) then base else "")
-    )
-  else
-    ""))
-
-procedure(UpdateFilenameFromImportSelection( field scope latestTextValue sourceOfChange)
-  let( (clean)
-    clean = CheckFileName(nil nil softworksBasenameFromPath(latestTextValue) nil)
-    scope->FileNameField->value = clean
-    clean
-  )
-)
 
 list(nil 
 	'CombinedGUI CombinedGUI
