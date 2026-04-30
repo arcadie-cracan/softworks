@@ -291,8 +291,11 @@ procedure(softworksBasenameFromPath(path "t")
     ""))
 
 procedure(UpdateFilenameFromImportSelection( field scope latestTextValue sourceOfChange)
-  scope->FileNameField->value = CheckFileName(nil nil softworksBasenameFromPath(latestTextValue) nil)
-  t
+  let( (clean)
+    clean = CheckFileName(nil nil softworksBasenameFromPath(latestTextValue) nil)
+    scope->FileNameField->value = clean
+    clean
+  )
 )
 
 list(nil 
