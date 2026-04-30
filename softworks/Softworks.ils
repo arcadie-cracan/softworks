@@ -149,16 +149,21 @@ Softworks = Import['Module]->New('Softworks
 ; SdmIdleTrigger and softworks* globals are set on the alist before list() above; do not
 ; rebind from Import['Softworks]->* here (can be nil and break GUICellView / defValue).
 
-; Invoke the doc-path procedure via a local funobj. Some environments leave the *function*
-; cell of `softworksProjectDocDir` nil even when putd/setq set the value; `name()` then
-; fails with "not a function - nil" in SKILL++ while procedurep is still t.
+; Safe documentation import default directory for contexts where calling
+; softworksProjectDocDir() fails ("not a function - nil" with HI ?defValue / SKILL++).
+; Mirrors softworksProjectDocDir cases using getShellEnvVar / strcat / pwd only — no d().
 procedure(SoftworksInvokeProjectDocDir()
-  let( (d)
-    d = softworksProjectDocDir
-    if(procedurep(d) then
-      d()
+  if(getShellEnvVar("SOFTWORKS_DOC_DIR") && greaterp(strlen(getShellEnvVar("SOFTWORKS_DOC_DIR")) 0) then
+    strcat(getShellEnvVar("SOFTWORKS_DOC_DIR") "/")
+  else
+    if(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") then
+      strcat(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") "/doc/")
     else
-      strcat(pwd() "/doc/"))))
+      progn(
+        warn(sprintf(nil
+          "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+          pwd()))
+        strcat(pwd() "/doc/"))))
 putd('SoftworksInvokeProjectDocDir SoftworksInvokeProjectDocDir)
 
 printf("done\n")

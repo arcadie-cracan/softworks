@@ -5,14 +5,14 @@ procedure(SoftworksNewDocViewTraceP()
     getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
     getShellEnvVar("SOFTWORKS_DEBUG")))
 
-; Default path for ?defValue: use SoftworksInvokeProjectDocDir from Softworks.ils — some flows
-; leave softworksProjectDocDir's function cell nil (procedurep can still be t); name() then
-; fails with "not a function - nil". InvokeProjectDocDir binds the funobj and calls d().
+; Default path for ?defValue: delegate to SoftworksInvokeProjectDocDir (builtins only;
+; does not call softworksProjectDocDir / d() — those can still be "not a function - nil"
+; under HI / SKILL++).
 procedure(SoftworksNewDocViewFilePathDefault()
   progn(
     when(SoftworksNewDocViewTraceP()
       warn(
-        "[Softworks GUI] defValue path: SoftworksInvokeProjectDocDir (SOFTWORKS_DOC_DIR / project root + pwd)"))
+        "[Softworks GUI] defValue path: SoftworksInvokeProjectDocDir (env + pwd, builtins only)"))
     SoftworksInvokeProjectDocDir()
   )
 )
