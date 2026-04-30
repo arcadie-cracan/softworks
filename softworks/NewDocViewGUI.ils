@@ -18,7 +18,7 @@ procedure(SoftworksNewDocViewFilePathDefault()
       strcat(explicit "/")
     else
       progn(
-	root = let(((r (getShellEnvVar("SOFTWORKS_PROJECT_ROOT")))) if(r then r else pwd()))
+	root = if(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") then getShellEnvVar("SOFTWORKS_PROJECT_ROOT") else pwd())
 	if(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") then
 	  strcat(root "/doc/")
 	else
