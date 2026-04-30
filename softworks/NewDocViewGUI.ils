@@ -277,9 +277,22 @@ procedure( UpdateFileContents(_field scope item)
    ) ; case
 ) ; procedure
 
+; DEBASE / some Virtuoso stacks: Import['Path]->FileName is not a real procedure (invoking it
+; yields *Error* eval: not a function - t). Derive the base name with SKILL only.
+procedure(softworksBasenameFromPath(path "t")
+  if(path && greaterp(strlen(path) 0) then
+    let((norm parts base)
+      norm = pcreReplace(pcreCompile("\\\\") path "/" 0)
+      parts = parseString(norm "/")
+      base = car(reverse(parts))
+      if(base && greaterp(strlen(base) 0) then base else "")
+    )
+  else
+    ""))
+
 procedure(UpdateFilenameFromImportSelection( field scope latestTextValue sourceOfChange)
-  scope->FileNameField->value = CheckFileName(nil nil Import['Path]->FileName(latestTextValue) nil)
-  't
+  scope->FileNameField->value = CheckFileName(nil nil softworksBasenameFromPath(latestTextValue) nil)
+  t
 )
 
 list(nil 
