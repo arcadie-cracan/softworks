@@ -91,7 +91,7 @@ procedure(softworksTemplatesRoot()
 
 procedure(softworksBlankDocTemplatePath(relativeTemplatePath "s")
   "Full path to a file under the template root, e.g. \"xlsx/xlsxTemplate.xlsx\"."
-  let(((base nil)))
+  let(((base nil))
     progn(
       base = softworksTemplatesRoot()
       if(base then
