@@ -117,16 +117,39 @@ let((SelectionL newForm formName)
 		newForm->CellNameField
 		newForm->ViewNameField
 	)
-	SoftworksApplyDocumentationGuiIntent(newForm ViewSelected)
 	hiDisplayForm( newForm )
 ))
 
 ; Create basic GUI with button for import or new view 
 procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
-  let((SelectionL newForm formName defaultImportPath) 
+  let((SelectionL defaultImportPath viewTag docIntentP importNewDef contentsDef
+	filePathInvisible contentsInvisible fileNameDef)
+	viewTag = cond(
+	  ((stringp(ViewSelected)) ViewSelected)
+	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
+	  (t ""))
+	docIntentP = and(not(blankstrp(viewTag)) member(viewTag '("xlsx" "pptx" "pdf" "html")))
+	importNewDef = if(docIntentP then "New" else "Import")
+	contentsDef = cond(
+	  ((not(docIntentP)) "Power Point (*.pptx)")
+	  ((zerop(strcmp(viewTag "xlsx"))) "Excel Spreadsheet (*.xlsx)")
+	  ((zerop(strcmp(viewTag "pptx"))) "Power Point (*.pptx)")
+	  ((zerop(strcmp(viewTag "pdf"))) "PDF (*.pdf)")
+	  ((zerop(strcmp(viewTag "html"))) "HTML (*.html)")
+	  (t "Power Point (*.pptx)"))
+	filePathInvisible = docIntentP
+	contentsInvisible = not(docIntentP)
+	fileNameDef = cond(
+	  ((not(docIntentP)) "Review.pptx")
+	  ((zerop(strcmp(viewTag "xlsx"))) "Review.xlsx")
+	  ((zerop(strcmp(viewTag "pptx"))) "Review.pptx")
+	  ((zerop(strcmp(viewTag "pdf"))) "Review.pdf")
+	  ((zerop(strcmp(viewTag "html"))) "Review.html")
+	  (t "Review.pptx"))
 	when(SoftworksNewDocViewTraceP()
 	  warn(sprintf(nil
-	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L" LibSelected CellSelected ViewSelected)))
+	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L viewTag=%L docIntentP=%L importNewDef=%L"
+	    LibSelected CellSelected ViewSelected viewTag docIntentP importNewDef)))
 	defaultImportPath = SoftworksNewDocViewFilePathDefault()
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
@@ -160,6 +183,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name      'ImportNewDropdown
 		?choices   '("Import" "New")
+		?defValue  importNewDef
 		?prompt    "Type of Cell:"
 		?callback   changeViewToImport
 		?keepHistory t)
@@ -173,7 +197,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 		?mode     'existingFile
 		?prompt   "Import File Path"
 		?defValue  defaultImportPath
-		?invisible nil
+		?invisible filePathInvisible
 		?editable  t)
 		5:170 400:30 100))
 	when(SoftworksNewDocViewTraceP()
@@ -181,7 +205,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
 	  ?prompt    "File Name"
-	  ?defValue  "Review.pptx"
+	  ?defValue  fileNameDef
 		?modifyCallback CheckFileName
 	  ?editable  t
 		?enabled   t) 
@@ -191,9 +215,10 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name       'ContentsOption
 		?choices    '("Power Point (*.pptx)" "Excel Spreadsheet (*.xlsx)" "PDF (*.pdf)" "HTML (*.html)")
+		?defValue   contentsDef
 		?callback   UpdateFileContents
 		?prompt     "File Type"
-		?invisible  t
+		?invisible  contentsInvisible
 		?enabled   t
 		?keepHistory t)
 		5:170 400:30 100))
@@ -278,29 +303,6 @@ procedure( UpdateFileContents(_field scope item)
 		 scope->ViewNameField->value = "html")
    ) ; case
 ) ; procedure
-
-; When Virtuoso opens this dialog for a specific Softworks doc view type (e.g. xlsx), cyclic
-; fields otherwise default to Import + Power Point — unrelated to user intent.
-procedure( SoftworksApplyDocumentationGuiIntent(form ViewSelected)
-	when(and(stringp(ViewSelected)
-		 member(ViewSelected '("xlsx" "pptx" "pdf" "html")))
-	progn(
-	  form->ImportNewDropdown->value = "New"
-	  form->FilePathField->invisible = t
-	  form->ContentsOption->invisible = nil
-	  ; SKILL let bindings reject case(...) as initializer on some builds; branch explicitly.
-	  when(zerop(strcmp(ViewSelected "xlsx"))
-	    form->ContentsOption->value = "Excel Spreadsheet (*.xlsx)"
-	    UpdateFileContents(nil form "Excel Spreadsheet (*.xlsx)"))
-	  when(zerop(strcmp(ViewSelected "pptx"))
-	    form->ContentsOption->value = "Power Point (*.pptx)"
-	    UpdateFileContents(nil form "Power Point (*.pptx)"))
-	  when(zerop(strcmp(ViewSelected "pdf"))
-	    form->ContentsOption->value = "PDF (*.pdf)"
-	    UpdateFileContents(nil form "PDF (*.pdf)"))
-	  when(zerop(strcmp(ViewSelected "html"))
-	    form->ContentsOption->value = "HTML (*.html)"
-	    UpdateFileContents(nil form "HTML (*.html)")))))
 
 list(nil 
 	'CombinedGUI CombinedGUI
