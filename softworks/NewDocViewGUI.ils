@@ -19,12 +19,12 @@ procedure(SoftworksNewDocViewFilePathDefault()
 
 ; Map lib/cell/view name or DEBASE rootType / viewType tag to xlsx|pptx|pdf|html for doc GUI defaults.
 procedure(SoftworksNormalizeDocKindTag(tagRaw)
-	let((tag cond((stringp(tagRaw)) tagRaw) ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw)) (t ""))))
-	if(blankstrp(tag) then nil
-	else cond(
-	  ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
-	  ((zerop(strcmp(tag "pdf_view"))) "pdf")
-	  (t nil))))
+	let((tag cond((stringp(tagRaw)) tagRaw) ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw)) (t "")))
+	  if(blankstrp(tag) then nil
+	  else cond(
+	    ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
+	    ((zerop(strcmp(tag "pdf_view"))) "pdf")
+	    (t nil))))
 
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
