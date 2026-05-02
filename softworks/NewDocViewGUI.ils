@@ -29,7 +29,11 @@ procedure(SoftworksNewDocViewFilePathDefault()
 
 ; Map lib/cell/view name or DEBASE rootType / viewType tag to xlsx|pptx|pdf|html for doc GUI defaults.
 procedure(SoftworksNormalizeDocKindTag(tagRaw)
-	let((tag cond((stringp(tagRaw)) tagRaw) ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw)) (t "")))
+	let(((tag ""))
+	  tag = cond(
+	    ((stringp(tagRaw)) tagRaw)
+	    ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw))
+	    (t ""))
 	  if(blankstrp(tag) then nil
 	  else cond(
 	    ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
@@ -189,6 +193,8 @@ let((SelectionL newForm formName)
 procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
   let((SelectionL defaultImportPath viewTag docKind docIntentFlag importNewDef contentsDef
 	filePathInvisible contentsInvisible fileNameDef)
+	; tconc(nil ...) is required; if SelectionL were ever resolved as global (e.g. symbol t), DEBASE hits eval: not a function - t.
+	SelectionL = nil
 	viewTag = cond(
 	  ((stringp(ViewSelected)) ViewSelected)
 	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
@@ -328,24 +334,25 @@ procedure( changeViewToImport( o_field g_scope g_item )
 	    warn(sprintf(nil "[Softworks NDGUI] changeViewToImport enter g_item=%L stringp=%L symbolp=%L"
 	      g_item stringp(g_item) symbolp(g_item))))
 	  nil)
-	let(((pickNew nil))
-	  pickNew = or(
-	    member(g_item list("New" 'New))
-	    (stringp(g_item) && zerop(strcmp(g_item "New")))
-	    (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
-	  if(pickNew then
-	    progn(
-	      g_scope->FilePathField->invisible = t 
-	      g_scope->ContentsOption->invisible = nil)
-	    progn(
-	      g_scope->ContentsOption->invisible = t
-	      g_scope->FilePathField->invisible = nil))
-	  nil)
+	when(and(g_scope g_scope->FilePathField g_scope->ContentsOption)
+	  let(((pickNew nil))
+	    pickNew = or(
+	      member(g_item list("New" 'New))
+	      (stringp(g_item) && zerop(strcmp(g_item "New")))
+	      (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
+	    if(pickNew then
+	      progn(
+		g_scope->FilePathField->invisible = t 
+		g_scope->ContentsOption->invisible = nil)
+	      progn(
+		g_scope->ContentsOption->invisible = t
+		g_scope->FilePathField->invisible = nil))
+	    nil))
 )
 
 ; Update the file name to work nicely with Unix
 procedure( CheckFileName(_field _scope t_latestTextValue _g_sourceOfChange)
-let( (comPat1 comPat2  comPat2 out)
+let( (comPat1 comPat2 comPat3 out)
 	; replaces spaces with underscores
 	comPat1 = pcreCompile( " " )
 	out = pcreReplace( comPat1 t_latestTextValue "_" 0 )
