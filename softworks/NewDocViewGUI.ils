@@ -204,11 +204,13 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	docKind = or(SoftworksNormalizeDocKindTag(viewTag) SoftworksNormalizeDocKindTag(RootTypeHint))
 	; DEBASE treats cond/when clauses like (t ...) or when(t ...) as (apply t ...): never use symbol t as flag/predicate CAR.
 	unknownDocKind = nil
-	unless(docKind unknownDocKind = 'SoftworksUnknownDocKind)
-	unless(or(not(stringp(docKind)) not(blankstrp(docKind)))
-	  unknownDocKind = 'SoftworksUnknownDocKind)
+	; DEBASE: unless(nil ...) expands like when(t ...) / cond (t ...) — never use unless here.
+	cond(
+	  ((eq docKind nil) unknownDocKind = 'SoftworksUnknownDocKind)
+	  ((and(stringp(docKind) blankstrp(docKind))) unknownDocKind = 'SoftworksUnknownDocKind))
 	importNewDef = "Import"
-	unless(unknownDocKind importNewDef = "New")
+	cond(
+	  ((eq unknownDocKind nil) importNewDef = "New"))
 	contentsDef = prog(
 	  ((SwNdTmp nil))
 	  when(unknownDocKind return("Power Point (*.pptx)"))
@@ -218,7 +220,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  when(member(docKind list("html")) return("HTML (*.html)"))
 	  return("Power Point (*.pptx)"))
 	filePathInvisible = nil
-	unless(unknownDocKind filePathInvisible = t)
+	cond(
+	  ((eq unknownDocKind nil) filePathInvisible = t))
 	contentsInvisible = nil
 	when(unknownDocKind contentsInvisible = t)
 	fileNameDef = prog(
@@ -362,14 +365,16 @@ procedure( changeViewToImport( o_field g_scope g_item )
 	      member(g_item list("New" 'New))
 	      (stringp(g_item) && zerop(strcmp(g_item "New")))
 	      (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
-	    unless(eq(pickNew nil)
-	      progn(
-		g_scope->FilePathField->invisible = t 
-		g_scope->ContentsOption->invisible = nil))
-	    unless(pickNew
-	      progn(
-		g_scope->ContentsOption->invisible = t
-		g_scope->FilePathField->invisible = nil))
+	    ; DEBASE: unless(eq ... nil) / unless(pickNew ...) hits unless(nil ...) → (t ...) expansion.
+	    cond(
+	      ((eq pickNew nil)
+		progn(
+		  g_scope->ContentsOption->invisible = t
+		  g_scope->FilePathField->invisible = nil))
+	      ((equal 0 0)
+		progn(
+		  g_scope->FilePathField->invisible = t 
+		  g_scope->ContentsOption->invisible = nil)))
 	    nil))
 )
 
