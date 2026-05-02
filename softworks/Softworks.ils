@@ -188,8 +188,9 @@ Softworks = Import['Module]->New('Softworks
 ; Safe documentation import default directory for contexts where calling
 ; softworksProjectDocDir() fails ("not a function - nil" with HI ?defValue / SKILL++).
 ; Mirrors env/root/pwd logic using getShellEnvVar / strcat / pwd only — no d().
-; DEBASE: avoid cond arms that expose env path strings + avoid setq value leaking as functor —
-; Store nests prog1(nil eval(setq ...)) inside let so eval/setq never appears as a functor.
+; DEBASE: avoid cond arms that expose env path strings.
+; Store assigns SoftworksDocImportPathResult via setq inside a let binder (DbgVoid catches value).
+; prog1(nil eval(list 'setq ...)) lowers badly on DEBASE (same class as prog2/Dbg chains → functor nil).
 ; FillFromEnv uses only zero-arg branches at the top cond so no long strings flow through cond lowering.
 ;
 ; [Softworks DOCPATH] DPstepNN: same env switches as GVstep (cannot rely on boundp of
@@ -217,8 +218,8 @@ procedure(SoftworksDocPathStore(v)
   let(((SoftworksDocPathDbgVoid (SoftworksDocPathDbg(sprintf(nil "DP20 SoftworksDocPathStore arg nil=%L len=%d"
       equal(nil v)
       SoftworksDocPathDbgStrlen(v))))))
-    let(((SoftworksDocPathDbgVoid (prog1(nil eval(list 'setq 'SoftworksDocImportPathResult v)))))
-      let(((SoftworksDocPathDbgVoid (SoftworksDocPathDbg("DP21 SoftworksDocPathStore after eval(setq)"))))
+    let(((SoftworksDocPathDbgVoid (setq SoftworksDocImportPathResult v)))
+      let(((SoftworksDocPathDbgVoid (SoftworksDocPathDbg("DP21 SoftworksDocPathStore after setq"))))
         nil))))
 
 procedure(SoftworksDocPathApplyDocEnvSlash(docEnvDir)
