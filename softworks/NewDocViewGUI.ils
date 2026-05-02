@@ -39,6 +39,12 @@ procedure(SoftworksNewDocViewFilePathDefault()
   )
 )
 
+; DEBASE: blankstrp may be absent on stripped stacks → eval: not a function - nil.
+procedure(SoftworksBlankStringp(s)
+  cond(
+    ((neq stringp(s) nil) eq(strlen(s) 0))
+    ((equal 0 0) nil)))
+
 ; Map lib/cell/view name or DEBASE rootType / viewType tag to xlsx|pptx|pdf|html for doc GUI defaults.
 procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	let(((tag ""))
@@ -50,9 +56,9 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	    ((equal 0 0) ""))
 	  ; DEBASE: if(... then ... else ...) expands to cond with (t else-expr); avoid if entirely.
 	  cond(
-	    ((eq blankstrp(tag) nil) cond(
-	      ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
-	      ((zerop(strcmp(tag "pdf_view"))) "pdf")
+	    ((neq tag "") cond(
+	      ((neq member(tag '("xlsx" "pptx" "pdf" "html")) nil) tag)
+	      ((neq member(tag '("pdf_view")) nil) "pdf")
 	      ((equal 0 0) nil)))
 	    ((equal 0 0) nil))))
 
@@ -235,7 +241,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	; DEBASE: unless(nil ...) expands like when(t ...) / cond (t ...) — never use unless here.
 	cond(
 	  ((eq docKind nil) unknownDocKind = 'SoftworksUnknownDocKind)
-	  ((and(stringp(docKind) blankstrp(docKind))) unknownDocKind = 'SoftworksUnknownDocKind))
+	  ((neq SoftworksBlankStringp(docKind) nil) unknownDocKind = 'SoftworksUnknownDocKind))
 	cond(((neq SoftworksGUICellViewStepTraceP() nil)
 	  warn(sprintf(nil "[Softworks NDGUI] GVstep05 unknownDocKind=%L" unknownDocKind))))
 	importNewDef = "Import"
