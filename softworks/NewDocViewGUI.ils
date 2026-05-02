@@ -117,6 +117,7 @@ let((SelectionL newForm formName)
 		newForm->CellNameField
 		newForm->ViewNameField
 	)
+	SoftworksApplyDocumentationGuiIntent(newForm ViewSelected)
 	hiDisplayForm( newForm )
 ))
 
@@ -277,6 +278,24 @@ procedure( UpdateFileContents(_field scope item)
 		 scope->ViewNameField->value = "html")
    ) ; case
 ) ; procedure
+
+; When Virtuoso opens this dialog for a specific Softworks doc view type (e.g. xlsx), cyclic
+; fields otherwise default to Import + Power Point — unrelated to user intent.
+procedure( SoftworksApplyDocumentationGuiIntent(form ViewSelected)
+	when(and(stringp(ViewSelected)
+		 member(ViewSelected '("xlsx" "pptx" "pdf" "html")))
+	let((choice case(ViewSelected
+	    ("xlsx" "Excel Spreadsheet (*.xlsx)")
+	    ("pptx" "Power Point (*.pptx)")
+	    ("pdf" "PDF (*.pdf)")
+	    ("html" "HTML (*.html)")
+	    (t nil))))
+	  form->ImportNewDropdown->value = "New"
+	  form->FilePathField->invisible = t
+	  form->ContentsOption->invisible = nil
+	  when(choice
+	    form->ContentsOption->value = choice
+	    UpdateFileContents(nil form choice)))))
 
 list(nil 
 	'CombinedGUI CombinedGUI
