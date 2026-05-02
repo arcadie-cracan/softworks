@@ -1,7 +1,7 @@
 ; Tracing: SOFTWORKS_GUI_TRACE=1, SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_DEBUG=1,
 ; or SOFTWORKS_NEW_DOC_GUI_DEBUG=1 for Documentation Cell View stepping ([Softworks NDGUI] G*, V*).
 ; Fine DEBASE stepping inside GUICellView / Normalize: SOFTWORKS_GUICELLVIEW_DEBASE_STEP=1 (GVstepNN warns).
-; Same predicate enables doc-path stepping in Softworks.ils ([Softworks DOCPATH] DPstepNN).
+; Doc-path DP* in Softworks.ils mirrors those env vars (SoftworksDocPathTraceP).
 ; DEBASE: when(or(...)) / when(member(...)) can see predicate symbol t → eval: not a function - t.
 ; Return only 1 or nil so when(SoftworksNewDocGuiVerboseP() ...) never expands to when(t ...).
 procedure(SoftworksNewDocViewTraceP()
@@ -143,6 +143,9 @@ let((SelectionL newForm formName)
 	  when(SoftworksNewDocGuiVerboseP()
 	    warn("[Softworks NDGUI] CombinedGUI G0b calling GUICellView"))
 	  nil)
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn("[Softworks NDGUI] CombinedGUI G0c SoftworksDocPathFillFromEnv before GUICellView")))
+	SoftworksDocPathFillFromEnv()
 	SelectionL = GUICellView(LibSelected CellSelected ViewSelected RootTypeHint)
 	progn(
 	  when(SoftworksNewDocGuiVerboseP()
@@ -295,10 +298,9 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	      "[Softworks GUI] GUICellView V1 enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L unknownDocKind=%L importNewDef=%L fileNameDef=%L pathInvisible=%L typeInvisible=%L"
 	      LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind unknownDocKind importNewDef fileNameDef filePathInvisible contentsInvisible)))
 	  nil)
-	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep12 before SoftworksDocPathFillFromEnv")))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep12b calling SoftworksDocPathFillFromEnv (see [Softworks DOCPATH] DP*)")))
-	SoftworksDocPathFillFromEnv()
-	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep12c returned from SoftworksDocPathFillFromEnv")))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep12 SoftworksDocImportPathResult preset=%L (Filled in CombinedGUI)"
+	    SoftworksDocImportPathResult))))
 	cond(((neq SoftworksGUICellViewStepTraceP() nil)
 	  warn(sprintf(nil "[Softworks NDGUI] GVstep13 SoftworksDocImportPathResult=%L" SoftworksDocImportPathResult))))
 	; LIB, CELL, VIEW SELECTION
