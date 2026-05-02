@@ -278,7 +278,7 @@ procedure(SoftworksDocPathFillFromRootEnvVar()
 
 procedure(SoftworksDocPathFillFromEnv()
   SoftworksDocPathDbg("DP01 SoftworksDocPathFillFromEnv enter")
-  let(((hitDoc (SoftworksDocPathFillFromDocEnvVar()))))
+  let(((hitDoc (SoftworksDocPathFillFromDocEnvVar())))
     cond(((neq SoftworksDocPathTraceP() nil)
       warn(sprintf(nil "[Softworks DOCPATH] DP02 FillFromDocEnvVar returned %L" hitDoc))))
     cond(
