@@ -34,11 +34,13 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	    ((stringp(tagRaw)) tagRaw)
 	    ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw))
 	    ((equal 0 0) ""))
-	  if(blankstrp(tag) then nil
-	  else cond(
-	    ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
-	    ((zerop(strcmp(tag "pdf_view"))) "pdf")
-	    ((equal 0 0) nil)))))
+	  ; DEBASE: if(... then ... else ...) expands to cond with (t else-expr); avoid if entirely.
+	  cond(
+	    ((eq blankstrp(tag) nil) cond(
+	      ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
+	      ((zerop(strcmp(tag "pdf_view"))) "pdf")
+	      ((equal 0 0) nil)))
+	    ((equal 0 0) nil))))
 
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
@@ -203,7 +205,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	; DEBASE treats cond/when clauses like (t ...) or when(t ...) as (apply t ...): never use symbol t as flag/predicate CAR.
 	unknownDocKind = nil
 	unless(docKind unknownDocKind = 'SoftworksUnknownDocKind)
-	when(and(stringp(docKind) blankstrp(docKind)) unknownDocKind = 'SoftworksUnknownDocKind)
+	unless(or(not(stringp(docKind)) not(blankstrp(docKind)))
+	  unknownDocKind = 'SoftworksUnknownDocKind)
 	importNewDef = "Import"
 	unless(unknownDocKind importNewDef = "New")
 	contentsDef = prog(
@@ -222,15 +225,21 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((SwNdTmp nil))
 	  when(unknownDocKind return("Review.pptx"))
 	  when(member(docKind list("xlsx"))
-	    return(if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx"))))
+	    return(cond(
+	      ((member(viewTag list("xlsx"))) "Review.xlsx")
+	      ((equal 0 0) strcat(viewTag ".xlsx")))))
 	  when(member(docKind list("pptx"))
-	    return(if(member(viewTag list("pptx")) then "Review.pptx" strcat(viewTag ".pptx"))))
+	    return(cond(
+	      ((member(viewTag list("pptx"))) "Review.pptx")
+	      ((equal 0 0) strcat(viewTag ".pptx")))))
 	  when(member(docKind list("pdf"))
-	    return(if(or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))
-	      then "Review.pdf"
-	      strcat(viewTag ".pdf"))))
+	    return(cond(
+	      ((or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))) "Review.pdf")
+	      ((equal 0 0) strcat(viewTag ".pdf")))))
 	  when(member(docKind list("html"))
-	    return(if(member(viewTag list("html")) then "Review.html" strcat(viewTag ".html"))))
+	    return(cond(
+	      ((member(viewTag list("html"))) "Review.html")
+	      ((equal 0 0) strcat(viewTag ".html")))))
 	  return("Review.pptx"))
 	progn(
 	  when(SoftworksNewDocGuiVerboseP()
@@ -353,10 +362,11 @@ procedure( changeViewToImport( o_field g_scope g_item )
 	      member(g_item list("New" 'New))
 	      (stringp(g_item) && zerop(strcmp(g_item "New")))
 	      (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
-	    if(pickNew then
+	    unless(eq(pickNew nil)
 	      progn(
 		g_scope->FilePathField->invisible = t 
-		g_scope->ContentsOption->invisible = nil)
+		g_scope->ContentsOption->invisible = nil))
+	    unless(pickNew
 	      progn(
 		g_scope->ContentsOption->invisible = t
 		g_scope->FilePathField->invisible = nil))
