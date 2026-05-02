@@ -45,8 +45,8 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	  cond(((neq SoftworksGUICellViewStepTraceP() nil)
 	    warn(sprintf(nil "[Softworks NDGUI] GVnorm enter tagRaw=%L" tagRaw))))
 	  tag = cond(
-	    ((stringp(tagRaw)) tagRaw)
-	    ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw))
+	    ((neq stringp(tagRaw) nil) tagRaw)
+	    ((neq symbolp(tagRaw) nil) sprintf(nil "%s" tagRaw))
 	    ((equal 0 0) ""))
 	  ; DEBASE: if(... then ... else ...) expands to cond with (t else-expr); avoid if entirely.
 	  cond(
@@ -216,8 +216,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	SelectionL = nil
 	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep01 SelectionL=nil")))
 	viewTag = cond(
-	  ((stringp(ViewSelected)) ViewSelected)
-	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
+	  ((neq stringp(ViewSelected) nil) ViewSelected)
+	  ((neq symbolp(ViewSelected) nil) sprintf(nil "%s" ViewSelected))
 	  ((equal 0 0) ""))
 	cond(((neq SoftworksGUICellViewStepTraceP() nil)
 	  warn(sprintf(nil "[Softworks NDGUI] GVstep02 viewTag=%L" viewTag))))
