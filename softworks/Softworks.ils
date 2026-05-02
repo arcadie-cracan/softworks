@@ -189,8 +189,8 @@ Softworks = Import['Module]->New('Softworks
 ; softworksProjectDocDir() fails ("not a function - nil" with HI ?defValue / SKILL++).
 ; Mirrors env/root/pwd logic using getShellEnvVar / strcat / pwd only — no d().
 ; DEBASE: avoid cond arms that expose env path strings + avoid setq value leaking as functor —
-; Store uses eval(list 'setq ...) inside progn so this procedure always yields nil; FillFromEnv
-; uses only zero-arg branches at the top cond so no long strings flow through cond lowering.
+; Store uses prog2(prog1(nil eval(setq ...))) so eval/setq results never appear as functors.
+; FillFromEnv uses only zero-arg branches at the top cond so no long strings flow through cond lowering.
 ;
 ; [Softworks DOCPATH] DPstepNN: same env switches as GVstep (cannot rely on boundp of
 ; SoftworksGUICellViewStepTraceP — symbol may live only on Import path).
@@ -213,93 +213,111 @@ procedure(SoftworksDocPathDbgStrlen(s)
   cond(((equal nil s) -1) ((equal 0 0) strlen(s))))
 
 procedure(SoftworksDocPathStore(v)
-  progn(
-    nil
+  prog2(
     SoftworksDocPathDbg(sprintf(nil "DP20 SoftworksDocPathStore arg nil=%L len=%d"
       equal(nil v)
       SoftworksDocPathDbgStrlen(v)))
-    progn(eval(list 'setq 'SoftworksDocImportPathResult v) nil)
-    SoftworksDocPathDbg("DP21 SoftworksDocPathStore after eval(setq)")))
+    prog2(
+      prog1(nil eval(list 'setq 'SoftworksDocImportPathResult v))
+      SoftworksDocPathDbg("DP21 SoftworksDocPathStore after eval(setq)"))))
 
 procedure(SoftworksDocPathApplyDocEnvSlash(docEnvDir)
-  progn(
-    nil
+  prog2(
     SoftworksDocPathDbg("DP30 SoftworksDocPathApplyDocEnvSlash enter")
-    SoftworksDocPathStore(strcat(docEnvDir "/"))
-    SoftworksDocPathDbg("DP31 SoftworksDocPathApplyDocEnvSlash exit")))
+    prog2(
+      SoftworksDocPathStore(strcat(docEnvDir "/"))
+      SoftworksDocPathDbg("DP31 SoftworksDocPathApplyDocEnvSlash exit"))))
 
 procedure(SoftworksDocPathApplyRootDoc(rootDir)
-  progn(
-    nil
+  prog2(
     SoftworksDocPathDbg("DP32 SoftworksDocPathApplyRootDoc enter")
-    SoftworksDocPathStore(strcat(rootDir "/doc/"))
-    SoftworksDocPathDbg("DP33 SoftworksDocPathApplyRootDoc exit")))
+    prog2(
+      SoftworksDocPathStore(strcat(rootDir "/doc/"))
+      SoftworksDocPathDbg("DP33 SoftworksDocPathApplyRootDoc exit"))))
 
 procedure(SoftworksDocPathApplyPwdDocWarn()
-  progn(
-    nil
+  prog2(
     SoftworksDocPathDbg("DP40 SoftworksDocPathApplyPwdDocWarn enter")
-    warn(sprintf(nil
-      "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
-      pwd()))
-    SoftworksDocPathStore(strcat(pwd() "/doc/"))
-    SoftworksDocPathDbg("DP41 SoftworksDocPathApplyPwdDocWarn exit")))
+    prog2(
+      warn(sprintf(nil
+	"Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+	pwd()))
+      prog2(
+	SoftworksDocPathStore(strcat(pwd() "/doc/"))
+	SoftworksDocPathDbg("DP41 SoftworksDocPathApplyPwdDocWarn exit")))))
 
 ; Returns t when SOFTWORKS_DOC_DIR yields a usable path (side effect: stores path).
-; DEBASE: no let(docEnv)/sprintf(docEnv)/equal(docEnv ...) — env string only inside
-; getShellEnvVar("...") actuals and strcat(getShellEnvVar(...) "/") inside Store.
-; DEBASE: progn(Dbg …) lets Dbg's nil apply to rest — lead each progn with nil.
-procedure(SoftworksDocPathFillFromDocEnvVar()
-  progn(
-    nil
-    SoftworksDocPathDbg("DP10 FillFromDocEnvVar (SOFTWORKS_DOC_DIR)")
-    cond(
-      ((equal nil getShellEnvVar("SOFTWORKS_DOC_DIR"))
-	progn(SoftworksDocPathDbg("DP14 FillFromDocEnvVar SOFTWORKS_DOC_DIR unset") nil))
-      ((equal(strlen(getShellEnvVar("SOFTWORKS_DOC_DIR")) 0))
-	progn(SoftworksDocPathDbg("DP13 FillFromDocEnvVar skip empty SOFTWORKS_DOC_DIR") nil))
-      (t
-	progn(
-	  nil
-	  SoftworksDocPathDbg("DP11 FillFromDocEnvVar store strcat(SOFTWORKS_DOC_DIR /)")
+; DEBASE: no local env strings; no progn(Dbg …) — use prog2(sideEffect result).
+procedure(SoftworksDocPathFillFromDocEnvVarCore()
+  cond(
+    ((equal nil getShellEnvVar("SOFTWORKS_DOC_DIR"))
+      prog2(SoftworksDocPathDbg("DP14 FillFromDocEnvVar SOFTWORKS_DOC_DIR unset") nil))
+    ((equal(strlen(getShellEnvVar("SOFTWORKS_DOC_DIR")) 0))
+      prog2(SoftworksDocPathDbg("DP13 FillFromDocEnvVar skip empty SOFTWORKS_DOC_DIR") nil))
+    (t
+      prog2(
+	SoftworksDocPathDbg("DP11 FillFromDocEnvVar store strcat(SOFTWORKS_DOC_DIR /)")
+	prog2(
 	  SoftworksDocPathStore(strcat(getShellEnvVar("SOFTWORKS_DOC_DIR") "/"))
-	  SoftworksDocPathDbg("DP12 FillFromDocEnvVar stored")
-	  t)))))
+	  prog2(
+	    SoftworksDocPathDbg("DP12 FillFromDocEnvVar stored")
+	    t)))))
+
+procedure(SoftworksDocPathFillFromDocEnvVar()
+  prog2(
+    SoftworksDocPathDbg("DP10 FillFromDocEnvVar (SOFTWORKS_DOC_DIR)")
+    SoftworksDocPathFillFromDocEnvVarCore()))
 
 ; Returns t when SOFTWORKS_PROJECT_ROOT yields a usable path (side effect: stores path).
-procedure(SoftworksDocPathFillFromRootEnvVar()
-  progn(
-    nil
-    SoftworksDocPathDbg("DP50 FillFromRootEnvVar (SOFTWORKS_PROJECT_ROOT)")
-    cond(
-      ((equal nil getShellEnvVar("SOFTWORKS_PROJECT_ROOT"))
-	progn(SoftworksDocPathDbg("DP54 FillFromRootEnvVar SOFTWORKS_PROJECT_ROOT unset") nil))
-      ((equal(strlen(getShellEnvVar("SOFTWORKS_PROJECT_ROOT")) 0))
-	progn(SoftworksDocPathDbg("DP53 FillFromRootEnvVar skip empty SOFTWORKS_PROJECT_ROOT") nil))
-      (t
-	progn(
-	  nil
-	  SoftworksDocPathDbg("DP51 FillFromRootEnvVar store .../doc/")
+procedure(SoftworksDocPathFillFromRootEnvVarCore()
+  cond(
+    ((equal nil getShellEnvVar("SOFTWORKS_PROJECT_ROOT"))
+      prog2(SoftworksDocPathDbg("DP54 FillFromRootEnvVar SOFTWORKS_PROJECT_ROOT unset") nil))
+    ((equal(strlen(getShellEnvVar("SOFTWORKS_PROJECT_ROOT")) 0))
+      prog2(SoftworksDocPathDbg("DP53 FillFromRootEnvVar skip empty SOFTWORKS_PROJECT_ROOT") nil))
+    (t
+      prog2(
+	SoftworksDocPathDbg("DP51 FillFromRootEnvVar store .../doc/")
+	prog2(
 	  SoftworksDocPathStore(strcat(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") "/doc/"))
-	  SoftworksDocPathDbg("DP52 FillFromRootEnvVar stored")
-	  t)))))
+	  prog2(
+	    SoftworksDocPathDbg("DP52 FillFromRootEnvVar stored")
+	    t)))))
+
+procedure(SoftworksDocPathFillFromRootEnvVar()
+  prog2(
+    SoftworksDocPathDbg("DP50 FillFromRootEnvVar (SOFTWORKS_PROJECT_ROOT)")
+    SoftworksDocPathFillFromRootEnvVarCore()))
+
+procedure(SoftworksDocPathFillFromEnvBranch(hitDoc)
+  prog2(
+    cond(
+      ((neq hitDoc nil)
+	prog2(SoftworksDocPathDbg("DP03 branch doc-env satisfied") nil))
+      ((neq SoftworksDocPathFillFromRootEnvVar() nil)
+	prog2(SoftworksDocPathDbg("DP04 branch root/doc satisfied") nil))
+      (t
+	prog2(
+	  SoftworksDocPathDbg("DP05 branch pwd/doc fallback")
+	  prog2(SoftworksDocPathApplyPwdDocWarn() nil)))
+    prog2(
+      SoftworksDocPathDbg("DP09 SoftworksDocPathFillFromEnv exit")
+      nil)))
+
+procedure(SoftworksDocPathFillFromEnvAfterHit(hitDoc)
+  prog2(
+    cond(((neq SoftworksDocPathTraceP() nil)
+      warn(sprintf(nil "[Softworks DOCPATH] DP02 FillFromDocEnvVar returned %L" hitDoc))))
+    SoftworksDocPathFillFromEnvBranch(hitDoc)))
+
+procedure(SoftworksDocPathFillFromEnvAfterDbg()
+  let(((hitDoc (SoftworksDocPathFillFromDocEnvVar()))))
+    SoftworksDocPathFillFromEnvAfterHit(hitDoc)))
 
 procedure(SoftworksDocPathFillFromEnv()
-  progn(nil
+  prog2(
     SoftworksDocPathDbg("DP01 SoftworksDocPathFillFromEnv enter")
-    let(((hitDoc (SoftworksDocPathFillFromDocEnvVar())))
-      progn(nil
-	cond(((neq SoftworksDocPathTraceP() nil)
-	  warn(sprintf(nil "[Softworks DOCPATH] DP02 FillFromDocEnvVar returned %L" hitDoc))))
-	cond(
-	  ((neq hitDoc nil)
-	    progn(SoftworksDocPathDbg("DP03 branch doc-env satisfied") nil))
-	  ((neq SoftworksDocPathFillFromRootEnvVar() nil)
-	    progn(SoftworksDocPathDbg("DP04 branch root/doc satisfied") nil))
-	  (t
-	    progn(SoftworksDocPathDbg("DP05 branch pwd/doc fallback") SoftworksDocPathApplyPwdDocWarn() nil)))
-	SoftworksDocPathDbg("DP09 SoftworksDocPathFillFromEnv exit")
-	nil))))
+    SoftworksDocPathFillFromEnvAfterDbg()))
 
 procedure(SoftworksInvokeProjectDocDir()
   SoftworksDocPathFillFromEnv()
