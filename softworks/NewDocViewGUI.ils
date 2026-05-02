@@ -1,18 +1,28 @@
-; Tracing: SOFTWORKS_GUI_TRACE=1, or SOFTWORKS_TRIGGER_TRACE, or SOFTWORKS_DEBUG=1
+; Tracing: SOFTWORKS_GUI_TRACE=1, SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_DEBUG=1,
+; or SOFTWORKS_NEW_DOC_GUI_DEBUG=1 for Documentation Cell View stepping ([Softworks NDGUI] G*, V*).
 procedure(SoftworksNewDocViewTraceP()
   or(
     getShellEnvVar("SOFTWORKS_GUI_TRACE")
     getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
     getShellEnvVar("SOFTWORKS_DEBUG")))
 
+; Documentation Cell View dialog: extra step logs without full GUI trace.
+; SOFTWORKS_NEW_DOC_GUI_DEBUG=1 OR any SoftworksNewDocViewTraceP() env.
+procedure(SoftworksNewDocGuiVerboseP()
+  or(
+    SoftworksNewDocViewTraceP()
+    getShellEnvVar("SOFTWORKS_NEW_DOC_GUI_DEBUG")))
+
 ; Default path for ?defValue: delegate to SoftworksInvokeProjectDocDir (builtins only;
 ; does not call softworksProjectDocDir / d() — those can still be "not a function - nil"
 ; under HI / SKILL++).
 procedure(SoftworksNewDocViewFilePathDefault()
   progn(
-    when(SoftworksNewDocViewTraceP()
-      warn(
-        "[Softworks GUI] defValue path: SoftworksInvokeProjectDocDir (env + pwd, builtins only)"))
+    progn(
+      when(SoftworksNewDocGuiVerboseP()
+	warn(
+	  "[Softworks GUI] defValue path: SoftworksInvokeProjectDocDir (env + pwd, builtins only)"))
+      nil)
     SoftworksInvokeProjectDocDir()
   )
 )
@@ -99,18 +109,34 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 ; Choose between import or new cell
 procedure( CombinedGUI(LibSelected CellSelected ViewSelected @optional RootTypeHint)
 let((SelectionL newForm formName)
-	when(SoftworksNewDocViewTraceP()
-	  warn(sprintf(nil
-	    "[Softworks GUI] CombinedGUI: enter lib=%L cell=%L view=%L rootTypeHint=%L"
-	    LibSelected CellSelected ViewSelected RootTypeHint)))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil
+	      "[Softworks NDGUI] CombinedGUI G0 enter lib=%L cell=%L view=%L rootTypeHint=%L"
+	      LibSelected CellSelected ViewSelected RootTypeHint)))
+	  nil)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] CombinedGUI G0b calling GUICellView"))
+	  nil)
 	SelectionL = GUICellView(LibSelected CellSelected ViewSelected RootTypeHint)
-	when(SoftworksNewDocViewTraceP()
-	  warn(sprintf(nil
-	    "[Softworks GUI] CombinedGUI: GUICellView returned, SelectionL car=%L" car(SelectionL))))
-    ; CREATE FORM
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil
+	      "[Softworks NDGUI] CombinedGUI G1 GUICellView returned fieldsCar=%L selectionTail=%L"
+	      car(SelectionL)
+	      cdr(SelectionL))))
+	  nil)
 	formName = gensym('importGUIDocForm)
-	when(SoftworksNewDocViewTraceP()
-	  warn("[Softworks GUI] CombinedGUI: about to hiCreateAppForm + hiDisplayForm"))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G2 gensym formName=%L" formName)))
+	  nil)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G3 hiCreateAppForm fieldsCar=%L"
+	      car(SelectionL))))
+	  nil)
 	newForm = hiCreateAppForm(
 		?name formName
 		?formTitle "Documentation Cell View"
@@ -120,14 +146,42 @@ let((SelectionL newForm formName)
 ;		?formType 'nonOptions
 		?unmapAfterCB t
 	)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G4 hiCreateAppForm -> newForm=%L" newForm)))
+	  nil)
 	putprop(formName "skyOpenSkyVerHelp()" 'hiHelpAction) 
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G5 hiInstantiateForm(%L)" newForm)))
+	  nil)
 	hiInstantiateForm(newForm)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] CombinedGUI G6 hiInstantiateForm returned"))
+	  nil)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] CombinedGUI G7 ddHiLinkFields Lib Cell View combos"))
+	  nil)
 	ddHiLinkFields(
 		newForm->LibNameField
 		newForm->CellNameField
 		newForm->ViewNameField
 	)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] CombinedGUI G8 ddHiLinkFields returned"))
+	  nil)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G9 hiDisplayForm(%L)" newForm)))
+	  nil)
 	hiDisplayForm( newForm )
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] CombinedGUI G10 hiDisplayForm returned"))
+	  nil)
 	nil
 ))
 
@@ -159,10 +213,12 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	    if(or(zerop(strcmp(viewTag "pdf")) zerop(strcmp(viewTag "pdf_view"))) "Review.pdf" strcat(viewTag ".pdf")))
 	  ((zerop(strcmp(docKind "html"))) if(zerop(strcmp(viewTag "html")) "Review.html" strcat(viewTag ".html")))
 	  (t "Review.pptx"))
-	when(SoftworksNewDocViewTraceP()
-	  warn(sprintf(nil
-	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L docIntentFlag=%L importNewDef=%L"
-	    LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind docIntentFlag importNewDef)))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil
+	      "[Softworks GUI] GUICellView V1 enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L docIntentFlag=%L importNewDef=%L fileNameDef=%L pathInvisible=%L typeInvisible=%L"
+	      LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind docIntentFlag importNewDef fileNameDef filePathInvisible contentsInvisible)))
+	  nil)
 	defaultImportPath = SoftworksNewDocViewFilePathDefault()
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
@@ -173,8 +229,10 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?validationType	 'allowExisting
 	    ?editable  t)
 		5:10 400:30 60))
-	when(SoftworksNewDocViewTraceP()
-	  warn("[Softworks GUI] GUICellView: after ddHiCreateLibraryComboField"))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V2 after ddHiCreateLibraryComboField"))
+	  nil)
 	SelectionL = tconc(SelectionL list(ddHiCreateCellComboField(
 		?name      'CellNameField
 	    ?prompt    "Cell"
@@ -191,8 +249,10 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?validationType	 'allowAny
 	    ?editable   t)
 		5:90 400:30 60))
-	when(SoftworksNewDocViewTraceP()
-	  warn("[Softworks GUI] GUICellView: after view combo, before ImportNewDropdown"))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V3 after view combo, before ImportNewDropdown cyclic"))
+	  nil)
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name      'ImportNewDropdown
 		?choices   '("Import" "New")
@@ -201,8 +261,14 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?callback   changeViewToImport
 		?keepHistory t)
 		5:130 400:30 90))
-	when(SoftworksNewDocViewTraceP()
-	  warn("[Softworks GUI] GUICellView: before file path field (defValue -> SoftworksNewDocViewFilePathDefault)"))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V4 ImportNewDropdown cyclic field created"))
+	  nil)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V5 before FilePathField"))
+	  nil)
 	; Import Cell View (Default). No ?modifyCallback: DEBASE can apply the callback return as a
 	; function (errors like not a function - t or - "/path/"). Set file name in FileNameField.
 	SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
@@ -213,8 +279,10 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?invisible filePathInvisible
 		?editable  t)
 		5:170 400:30 100))
-	when(SoftworksNewDocViewTraceP()
-	  warn("[Softworks GUI] GUICellView: after file path field (defValue callback completed)"))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V6 FilePathField created"))
+	  nil)
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
 	  ?prompt    "File Name"
@@ -223,6 +291,11 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ?editable  t
 		?enabled   t) 
 		5:210 400:30 100))
+
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V7 FileNameField created"))
+	  nil)
 
 	; New Cell View 
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
@@ -235,30 +308,40 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?enabled   t
 		?keepHistory t)
 		5:170 400:30 100))
-	when(SoftworksNewDocViewTraceP()
-	  warn("[Softworks GUI] GUICellView: after ContentsOption; returning field list to CombinedGUI"))
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V8 ContentsOption cyclic created"))
+	  nil)
+	progn(
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn("[Softworks NDGUI] GUICellView V9 returning SelectionL -> CombinedGUI"))
+	  nil)
 	SelectionL
 ))
 
 
 ; Adjust GUI options for either New cell or Import cell formats
-; HI treats cyclic ?callback return as callable — use progn so the evaluated result is nil.
+; DEBASE may pass symbol New or string "New"; treat both as New. HI cyclic callbacks must return nil.
 procedure( changeViewToImport( o_field g_scope g_item )
 	progn(
-	  if( (g_item == "New") 
-		  then  
-			  progn(
-			    g_scope->FilePathField->invisible = t 
-			    g_scope->ContentsOption->invisible = nil)
-			  ;hiUpdateFormBlock( g_scope )
-		  else
-			  progn(
-			    g_scope->ContentsOption->invisible = t
-			    g_scope->FilePathField->invisible = nil)
-			  ;hiUpdateFormBlock( g_scope )
-;			  hiChangeFormCallback( form newDocCB)
-	  ) ; if
-	  nil))
+	  when(SoftworksNewDocGuiVerboseP()
+	    warn(sprintf(nil "[Softworks NDGUI] changeViewToImport enter g_item=%L stringp=%L symbolp=%L"
+	      g_item stringp(g_item) symbolp(g_item))))
+	  nil)
+	let((pickNew))
+	  pickNew = or(
+	    member(g_item list("New" 'New))
+	    (stringp(g_item) && zerop(strcmp(g_item "New")))
+	    (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
+	  if(pickNew then
+	    progn(
+	      g_scope->FilePathField->invisible = t 
+	      g_scope->ContentsOption->invisible = nil)
+	    progn(
+	      g_scope->ContentsOption->invisible = t
+	      g_scope->FilePathField->invisible = nil))
+	  nil)
+)
 
 ; Update the file name to work nicely with Unix
 procedure( CheckFileName(_field _scope t_latestTextValue _g_sourceOfChange)
