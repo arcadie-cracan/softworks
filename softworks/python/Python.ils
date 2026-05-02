@@ -91,6 +91,8 @@ procedure(DataTrigger(@optional argList)
 	t
 ))
 
+SdmPyDataTrigger = DataTrigger
+
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
