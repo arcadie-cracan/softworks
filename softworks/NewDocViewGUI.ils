@@ -222,9 +222,9 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((SwNdTmp nil))
 	  when(unknownDocKind return("Review.pptx"))
 	  when(member(docKind list("xlsx"))
-	    return(if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx")))
+	    return(if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx"))))
 	  when(member(docKind list("pptx"))
-	    return(if(member(viewTag list("pptx")) then "Review.pptx" strcat(viewTag ".pptx")))
+	    return(if(member(viewTag list("pptx")) then "Review.pptx" strcat(viewTag ".pptx"))))
 	  when(member(docKind list("pdf"))
 	    return(if(or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))
 	      then "Review.pdf"
@@ -425,10 +425,10 @@ procedure( UpdateFileContents(_field scope item)
 
 list(nil 
 	'CombinedGUI CombinedGUI
-)))
+))
 
 putprop(Import['Softworks] NewDocViewGUI 'NewDocViewGUI)
-))
+)
 ; Must be *outside* the package let: assigning inside the let can leave SdmCombinedGUI
 ; scoped to the let, so SdmXLSX and boundp('SdmCombinedGUI) do not see it after load.
 SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
