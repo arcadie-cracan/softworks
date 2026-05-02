@@ -246,11 +246,9 @@ procedure(SoftworksDocPathFillFromDocEnvVar()
 	equal(docEnv nil)
 	if(docEnv then strlen(docEnv) else -1)))
       cond(
-	((equal docEnv nil)
-	  progn(SoftworksDocPathDbg("DP14 FillFromDocEnvVar SOFTWORKS_DOC_DIR unset") nil))
-	((equal(strlen(docEnv) 0)
-	  progn(SoftworksDocPathDbg("DP13 FillFromDocEnvVar skip empty SOFTWORKS_DOC_DIR") nil))
-	((equal 0 0)
+	((equal docEnv nil) progn(SoftworksDocPathDbg("DP14 FillFromDocEnvVar SOFTWORKS_DOC_DIR unset") nil))
+	((equal(strlen(docEnv) 0)) progn(SoftworksDocPathDbg("DP13 FillFromDocEnvVar skip empty SOFTWORKS_DOC_DIR") nil))
+	(t
 	  progn(
 	    SoftworksDocPathDbg("DP11 FillFromDocEnvVar calling SoftworksDocPathApplyDocEnvSlash")
 	    SoftworksDocPathApplyDocEnvSlash(docEnv)
@@ -265,11 +263,9 @@ procedure(SoftworksDocPathFillFromRootEnvVar()
 	equal(rootEnv nil)
 	if(rootEnv then strlen(rootEnv) else -1)))
       cond(
-	((equal rootEnv nil)
-	  progn(SoftworksDocPathDbg("DP54 FillFromRootEnvVar SOFTWORKS_PROJECT_ROOT unset") nil))
-	((equal(strlen(rootEnv) 0)
-	  progn(SoftworksDocPathDbg("DP53 FillFromRootEnvVar skip empty SOFTWORKS_PROJECT_ROOT") nil))
-	((equal 0 0)
+	((equal rootEnv nil) progn(SoftworksDocPathDbg("DP54 FillFromRootEnvVar SOFTWORKS_PROJECT_ROOT unset") nil))
+	((equal(strlen(rootEnv) 0)) progn(SoftworksDocPathDbg("DP53 FillFromRootEnvVar skip empty SOFTWORKS_PROJECT_ROOT") nil))
+	(t
 	  progn(
 	    SoftworksDocPathDbg("DP51 FillFromRootEnvVar calling SoftworksDocPathApplyRootDoc")
 	    SoftworksDocPathApplyRootDoc(rootEnv)
