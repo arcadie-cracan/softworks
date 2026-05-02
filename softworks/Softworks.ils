@@ -299,16 +299,19 @@ procedure(SoftworksDocPathFillFromEnvAfterHit(hitDoc)
     SoftworksDocPathFillFromEnvBranch(hitDoc)))
 
 procedure(SoftworksDocPathFillFromEnvAfterDbg()
-  let(((hitDoc (SoftworksDocPathFillFromDocEnvVar())))
-    SoftworksDocPathFillFromEnvAfterHit(hitDoc)))
+  let(((SoftworksDocPathDbgVoid (SoftworksDocPathDbg("DP01 SoftworksDocPathFillFromEnv enter")))))
+    let(((hitDoc (SoftworksDocPathFillFromDocEnvVar()))))
+      SoftworksDocPathFillFromEnvAfterHit(hitDoc))))
+
 
 procedure(SoftworksDocPathFillFromEnv()
-  let(((SoftworksDocPathDbgVoid (SoftworksDocPathDbg("DP01 SoftworksDocPathFillFromEnv enter"))))
-    SoftworksDocPathFillFromEnvAfterDbg()))
+  SoftworksDocPathFillFromEnvAfterDbg())
 
 procedure(SoftworksInvokeProjectDocDir()
-  SoftworksDocPathFillFromEnv()
-  SoftworksDocImportPathResult)
+  let(((SoftworksDocPathDbgVoid (SoftworksDocPathFillFromEnv()))))
+    SoftworksDocImportPathResult))
+
+
 putd('SoftworksInvokeProjectDocDir SoftworksInvokeProjectDocDir)
 
 printf("done\n")
