@@ -191,7 +191,7 @@ let((SelectionL newForm formName)
 
 ; Create basic GUI with button for import or new view 
 procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
-  let((SelectionL defaultImportPath viewTag docKind docIntentFlag importNewDef contentsDef
+  let((SelectionL defaultImportPath viewTag docKind unknownDocKind importNewDef contentsDef
 	filePathInvisible contentsInvisible fileNameDef)
 	; tconc(nil ...) is required; if SelectionL were ever resolved as global (e.g. symbol t), DEBASE hits eval: not a function - t.
 	SelectionL = nil
@@ -200,35 +200,41 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
 	  (t ""))
 	docKind = or(SoftworksNormalizeDocKindTag(viewTag) SoftworksNormalizeDocKindTag(RootTypeHint))
-	docIntentFlag = not(not(docKind))
-	importNewDef = if(docIntentFlag then "New" else "Import")
-	; DEBASE/HI can mis-handle cond when a predicate evaluates to symbol t (e.g. zerop -> t): eval: not a function - t.
-	; Use member/string compares instead of zerop(strcmp(...)) as cond predicates.
-	contentsDef = if(not(docIntentFlag) then "Power Point (*.pptx)"
-	  else if(member(docKind list("xlsx")) then "Excel Spreadsheet (*.xlsx)"
-	  else if(member(docKind list("pptx")) then "Power Point (*.pptx)"
-	  else if(member(docKind list("pdf")) then "PDF (*.pdf)"
-	  else if(member(docKind list("html")) then "HTML (*.html)"
-	  else "Power Point (*.pptx)")))))
-	filePathInvisible = docIntentFlag
-	contentsInvisible = not(docIntentFlag)
-	fileNameDef = if(not(docIntentFlag) then "Review.pptx"
-	  else if(member(docKind list("xlsx"))
-	    then if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx"))
-	  else if(member(docKind list("pptx"))
-	    then if(member(viewTag list("pptx")) then "Review.pptx" strcat(viewTag ".pptx"))
-	  else if(member(docKind list("pdf"))
-	    then if(or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))
+	; DEBASE can eval if(predicate) when predicate is symbol t (e.g. not(not(docKind))). Never branch if() on bare t/nil flags.
+	unknownDocKind = nil
+	unless(docKind unknownDocKind = t)
+	when(and(stringp(docKind) blankstrp(docKind)) unknownDocKind = t)
+	importNewDef = "Import"
+	unless(unknownDocKind importNewDef = "New")
+	contentsDef = prog((_swNdTmp nil)
+	  when(unknownDocKind return("Power Point (*.pptx)"))
+	  when(member(docKind list("xlsx")) return("Excel Spreadsheet (*.xlsx)"))
+	  when(member(docKind list("pptx")) return("Power Point (*.pptx)"))
+	  when(member(docKind list("pdf")) return("PDF (*.pdf)"))
+	  when(member(docKind list("html")) return("HTML (*.html)"))
+	  return("Power Point (*.pptx)"))
+	filePathInvisible = nil
+	unless(unknownDocKind filePathInvisible = t)
+	contentsInvisible = nil
+	when(unknownDocKind contentsInvisible = t)
+	fileNameDef = prog((_swNdTmp nil)
+	  when(unknownDocKind return("Review.pptx"))
+	  when(member(docKind list("xlsx"))
+	    return(if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx")))
+	  when(member(docKind list("pptx"))
+	    return(if(member(viewTag list("pptx")) then "Review.pptx" strcat(viewTag ".pptx")))
+	  when(member(docKind list("pdf"))
+	    return(if(or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))
 	      then "Review.pdf"
-	      strcat(viewTag ".pdf")))
-	  else if(member(docKind list("html"))
-	    then if(member(viewTag list("html")) then "Review.html" strcat(viewTag ".html")))
-	  else "Review.pptx")))
+	      strcat(viewTag ".pdf"))))
+	  when(member(docKind list("html"))
+	    return(if(member(viewTag list("html")) then "Review.html" strcat(viewTag ".html"))))
+	  return("Review.pptx"))
 	progn(
 	  when(SoftworksNewDocGuiVerboseP()
 	    warn(sprintf(nil
-	      "[Softworks GUI] GUICellView V1 enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L docIntentFlag=%L importNewDef=%L fileNameDef=%L pathInvisible=%L typeInvisible=%L"
-	      LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind docIntentFlag importNewDef fileNameDef filePathInvisible contentsInvisible)))
+	      "[Softworks GUI] GUICellView V1 enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L unknownDocKind=%L importNewDef=%L fileNameDef=%L pathInvisible=%L typeInvisible=%L"
+	      LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind unknownDocKind importNewDef fileNameDef filePathInvisible contentsInvisible)))
 	  nil)
 	defaultImportPath = SoftworksNewDocViewFilePathDefault()
 	; LIB, CELL, VIEW SELECTION
