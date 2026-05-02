@@ -289,7 +289,7 @@ procedure( SoftworksApplyDocumentationGuiIntent(form ViewSelected)
 	    ("pptx" "Power Point (*.pptx)")
 	    ("pdf" "PDF (*.pdf)")
 	    ("html" "HTML (*.html)")
-	    (t nil))))
+	    (t nil)))
 	  form->ImportNewDropdown->value = "New"
 	  form->FilePathField->invisible = t
 	  form->ContentsOption->invisible = nil
