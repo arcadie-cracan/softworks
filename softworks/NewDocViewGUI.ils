@@ -38,7 +38,7 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	  else cond(
 	    ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
 	    ((zerop(strcmp(tag "pdf_view"))) "pdf")
-	    (t nil))))
+	    (t nil)))))
 
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
