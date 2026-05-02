@@ -33,12 +33,12 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	  tag = cond(
 	    ((stringp(tagRaw)) tagRaw)
 	    ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw))
-	    (t ""))
+	    ((equal 0 0) ""))
 	  if(blankstrp(tag) then nil
 	  else cond(
 	    ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
 	    ((zerop(strcmp(tag "pdf_view"))) "pdf")
-	    (t nil)))))
+	    ((equal 0 0) nil)))))
 
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
@@ -198,12 +198,12 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	viewTag = cond(
 	  ((stringp(ViewSelected)) ViewSelected)
 	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
-	  (t ""))
+	  ((equal 0 0) ""))
 	docKind = or(SoftworksNormalizeDocKindTag(viewTag) SoftworksNormalizeDocKindTag(RootTypeHint))
-	; DEBASE can eval if(predicate) when predicate is symbol t (e.g. not(not(docKind))). Never branch if() on bare t/nil flags.
+	; DEBASE treats cond/when clauses like (t ...) or when(t ...) as (apply t ...): never use symbol t as flag/predicate CAR.
 	unknownDocKind = nil
-	unless(docKind unknownDocKind = t)
-	when(and(stringp(docKind) blankstrp(docKind)) unknownDocKind = t)
+	unless(docKind unknownDocKind = 'SoftworksUnknownDocKind)
+	when(and(stringp(docKind) blankstrp(docKind)) unknownDocKind = 'SoftworksUnknownDocKind)
 	importNewDef = "Import"
 	unless(unknownDocKind importNewDef = "New")
 	contentsDef = prog(
