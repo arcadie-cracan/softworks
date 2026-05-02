@@ -128,6 +128,7 @@ let((SelectionL newForm formName)
 		newForm->ViewNameField
 	)
 	hiDisplayForm( newForm )
+	nil
 ))
 
 ; Create basic GUI with button for import or new view 
@@ -241,21 +242,23 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 
 
 ; Adjust GUI options for either New cell or Import cell formats
-; HI treats cyclic ?callback return as a callable — assignments return t in SKILL; end with nil.
+; HI treats cyclic ?callback return as callable — use progn so the evaluated result is nil.
 procedure( changeViewToImport( o_field g_scope g_item )
-	if( (g_item == "New") 
-		then  
-			g_scope->FilePathField->invisible = t 
-			g_scope->ContentsOption->invisible = nil 
-			;hiUpdateFormBlock( g_scope )
-		else
-			g_scope->ContentsOption->invisible = t
-			g_scope->FilePathField->invisible = nil
-			;hiUpdateFormBlock( g_scope )
-;			hiChangeFormCallback( form newDocCB)
-	) ; if
-	nil
-) ;procedure
+	progn(
+	  if( (g_item == "New") 
+		  then  
+			  progn(
+			    g_scope->FilePathField->invisible = t 
+			    g_scope->ContentsOption->invisible = nil)
+			  ;hiUpdateFormBlock( g_scope )
+		  else
+			  progn(
+			    g_scope->ContentsOption->invisible = t
+			    g_scope->FilePathField->invisible = nil)
+			  ;hiUpdateFormBlock( g_scope )
+;			  hiChangeFormCallback( form newDocCB)
+	  ) ; if
+	  nil))
 
 ; Update the file name to work nicely with Unix
 procedure( CheckFileName(_field _scope t_latestTextValue _g_sourceOfChange)
@@ -298,10 +301,10 @@ let( (comPat1 comPat2 comPat3 out)
 	out = pcreReplace( comPat3 out "\\* " 0 )
 ))
 
-; Changes FileNameField extension based on drop down menu
-; HI treats cyclic ?callback return as a callable — case branches end with assignments (-> t); return nil.
+; HI treats cyclic ?callback return as callable — progn forces nil result (case yields t from assigns).
 procedure( UpdateFileContents(_field scope item)
-   case(item 
+	progn(
+	  case(item 
 		(("Power Point (*.pptx)") 
 		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pptx")
 		 scope->ViewNameField->value = "pptx")
@@ -314,9 +317,8 @@ procedure( UpdateFileContents(_field scope item)
 		(("HTML (*.html)")
 		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html")
 		 scope->ViewNameField->value = "html")
-   ) ; case
-   nil
-) ; procedure
+	  ) ; case
+	  nil))
 
 list(nil 
 	'CombinedGUI CombinedGUI
