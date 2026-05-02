@@ -261,7 +261,7 @@ procedure(SoftworksDocPathFillFromDocEnvVarCore()
 	  SoftworksDocPathStore(strcat(getShellEnvVar("SOFTWORKS_DOC_DIR") "/"))
 	  prog2(
 	    SoftworksDocPathDbg("DP12 FillFromDocEnvVar stored")
-	    t)))))
+	    t))))))
 
 procedure(SoftworksDocPathFillFromDocEnvVar()
   prog2(
@@ -282,7 +282,7 @@ procedure(SoftworksDocPathFillFromRootEnvVarCore()
 	  SoftworksDocPathStore(strcat(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") "/doc/"))
 	  prog2(
 	    SoftworksDocPathDbg("DP52 FillFromRootEnvVar stored")
-	    t)))))
+	    t))))))
 
 procedure(SoftworksDocPathFillFromRootEnvVar()
   prog2(
