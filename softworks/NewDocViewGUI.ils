@@ -29,8 +29,7 @@ procedure(SoftworksGUICellViewStepTraceP()
 ; Default path helper: delegates to SoftworksDocPathFillFromEnv (Softworks.ils).
 ; DEBASE GUICellView uses SoftworksDocImportPathResult + ?defValue — no prog2(local setq).
 procedure(SoftworksNewDocViewFilePathDefault()
-  let(((SoftworksDocPathDbgVoid (when(SoftworksNewDocGuiVerboseP()
-      warn("[Softworks GUI] defValue path: SoftworksDocPathFillFromEnv -> SoftworksDocImportPathResult")))))
+  let(((SoftworksDocPathDbgVoid (when(SoftworksNewDocGuiVerboseP() warn("[Softworks GUI] defValue path: SoftworksDocPathFillFromEnv -> SoftworksDocImportPathResult")))))
     let(((SoftworksDocPathDbgVoid (SoftworksDocPathFillFromEnv())))
       SoftworksDocImportPathResult)))
 
