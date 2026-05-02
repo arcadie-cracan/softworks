@@ -25,19 +25,61 @@ procedure(SoftworksGUICellViewStepTraceP()
     ((neq nil getShellEnvVar("SOFTWORKS_GUICELLVIEW_DEBASE_STEP")) 1)
     ((equal 0 0) nil)))
 
-; Default path for ?defValue: delegate to SoftworksInvokeProjectDocDir (builtins only;
-; does not call softworksProjectDocDir / d() — those can still be "not a function - nil"
-; under HI / SKILL++).
-; DEBASE: progn ending in SoftworksInvokeProjectDocDir() can apply the returned path string
-; as a function (eval: not a function - "/..."). Bind result in let and return the symbol.
+; Default path for ?defValue: same rules as SoftworksInvokeProjectDocDir (builtins only).
+; DEBASE: assigning SoftworksInvokeProjectDocDir() applied the path string as a function — logic is
+; inlined here (must stay in sync with SoftworksInvokeProjectDocDir in Softworks.ils).
 procedure(SoftworksNewDocViewFilePathDefault()
-	let(((path nil))
+	let(((docEnv (getShellEnvVar("SOFTWORKS_DOC_DIR")))
+	     (rootEnv (getShellEnvVar("SOFTWORKS_PROJECT_ROOT")))
+	     (path nil))
 	  progn(
 	    when(SoftworksNewDocGuiVerboseP()
 	      warn(
 		"[Softworks GUI] defValue path: SoftworksInvokeProjectDocDir (env + pwd, builtins only)"))
 	    nil)
-	  path = SoftworksInvokeProjectDocDir()
+	  cond(
+	    ((neq docEnv nil)
+	      cond(
+	        ((neq strlen(docEnv) 0)
+	          progn(path = strcat(docEnv "/") nil))
+	        ((equal 0 0)
+	          cond(
+	            ((neq rootEnv nil)
+	              cond(
+	                ((neq strlen(rootEnv) 0)
+	                  progn(path = strcat(rootEnv "/doc/") nil))
+	                ((equal 0 0)
+	                  progn(
+	                    warn(sprintf(nil
+			      "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+			      pwd()))
+	                    path = strcat(pwd() "/doc/")
+	                    nil))))
+	            ((equal 0 0)
+	              progn(
+	                warn(sprintf(nil
+			  "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+			  pwd()))
+	                path = strcat(pwd() "/doc/")
+	                nil))))))
+	    ((neq rootEnv nil)
+	      cond(
+	        ((neq strlen(rootEnv) 0)
+	          progn(path = strcat(rootEnv "/doc/") nil))
+	        ((equal 0 0)
+	          progn(
+	            warn(sprintf(nil
+		      "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+		      pwd()))
+	            path = strcat(pwd() "/doc/")
+	            nil))))
+	    ((equal 0 0)
+	      progn(
+	        warn(sprintf(nil
+		  "Softworks: SOFTWORKS_DOC_DIR and SOFTWORKS_PROJECT_ROOT are not set; using the default doc import path %s/doc/ (current working directory as project root)."
+		  pwd()))
+	        path = strcat(pwd() "/doc/")
+	        nil)))
 	  path))
 
 ; DEBASE: blankstrp may be absent on stripped stacks → eval: not a function - nil.
