@@ -210,12 +210,12 @@ procedure(SoftworksDocPathDbg(msg)
 
 ; DEBASE: never use if(strVar then ...) when strVar can be SOFTWORKS_DOC_DIR — functor bug.
 procedure(SoftworksDocPathDbgStrlen(s)
-  cond(((equal s nil) -1) ((equal 0 0) strlen(s))))
+  cond(((equal nil s) -1) ((equal 0 0) strlen(s))))
 
 procedure(SoftworksDocPathStore(v)
   progn(
     SoftworksDocPathDbg(sprintf(nil "DP20 SoftworksDocPathStore arg nil=%L len=%d"
-      equal(v nil)
+      equal(nil v)
       SoftworksDocPathDbgStrlen(v)))
     progn(eval(list 'setq 'SoftworksDocImportPathResult v) nil)
     SoftworksDocPathDbg("DP21 SoftworksDocPathStore after eval(setq)")))
@@ -242,39 +242,38 @@ procedure(SoftworksDocPathApplyPwdDocWarn()
     SoftworksDocPathDbg("DP41 SoftworksDocPathApplyPwdDocWarn exit")))
 
 ; Returns t when SOFTWORKS_DOC_DIR yields a usable path (side effect: stores path).
-; DEBASE: do not use if(docEnv ...) — predicate position can force-apply the path string.
+; DEBASE: no let(docEnv)/sprintf(docEnv)/equal(docEnv ...) — env string only inside
+; getShellEnvVar("...") actuals and strcat(getShellEnvVar(...) "/") inside Store.
 procedure(SoftworksDocPathFillFromDocEnvVar()
-  let(((docEnv (getShellEnvVar("SOFTWORKS_DOC_DIR"))))
-    progn(
-      SoftworksDocPathDbg(sprintf(nil "DP10 SoftworksDocPathFillFromDocEnvVar docEnv nil=%L strlen=%d"
-	equal(docEnv nil)
-	SoftworksDocPathDbgStrlen(docEnv)))
-      cond(
-	((equal docEnv nil) progn(SoftworksDocPathDbg("DP14 FillFromDocEnvVar SOFTWORKS_DOC_DIR unset") nil))
-	((equal(strlen(docEnv) 0)) progn(SoftworksDocPathDbg("DP13 FillFromDocEnvVar skip empty SOFTWORKS_DOC_DIR") nil))
-	(t
-	  progn(
-	    SoftworksDocPathDbg("DP11 FillFromDocEnvVar calling SoftworksDocPathApplyDocEnvSlash")
-	    SoftworksDocPathApplyDocEnvSlash(docEnv)
-	    SoftworksDocPathDbg("DP12 FillFromDocEnvVar ApplyDocEnvSlash finished")
-	    t))))))
+  progn(
+    SoftworksDocPathDbg("DP10 FillFromDocEnvVar (SOFTWORKS_DOC_DIR)")
+    cond(
+      ((equal nil getShellEnvVar("SOFTWORKS_DOC_DIR"))
+	progn(SoftworksDocPathDbg("DP14 FillFromDocEnvVar SOFTWORKS_DOC_DIR unset") nil))
+      ((equal(strlen(getShellEnvVar("SOFTWORKS_DOC_DIR")) 0))
+	progn(SoftworksDocPathDbg("DP13 FillFromDocEnvVar skip empty SOFTWORKS_DOC_DIR") nil))
+      ((equal 0 0)
+	progn(
+	  SoftworksDocPathDbg("DP11 FillFromDocEnvVar store strcat(SOFTWORKS_DOC_DIR /)")
+	  SoftworksDocPathStore(strcat(getShellEnvVar("SOFTWORKS_DOC_DIR") "/"))
+	  SoftworksDocPathDbg("DP12 FillFromDocEnvVar stored")
+	  t)))))
 
 ; Returns t when SOFTWORKS_PROJECT_ROOT yields a usable path (side effect: stores path).
 procedure(SoftworksDocPathFillFromRootEnvVar()
-  let(((rootEnv (getShellEnvVar("SOFTWORKS_PROJECT_ROOT"))))
-    progn(
-      SoftworksDocPathDbg(sprintf(nil "DP50 SoftworksDocPathFillFromRootEnvVar rootEnv nil=%L strlen=%d"
-	equal(rootEnv nil)
-	SoftworksDocPathDbgStrlen(rootEnv)))
-      cond(
-	((equal rootEnv nil) progn(SoftworksDocPathDbg("DP54 FillFromRootEnvVar SOFTWORKS_PROJECT_ROOT unset") nil))
-	((equal(strlen(rootEnv) 0)) progn(SoftworksDocPathDbg("DP53 FillFromRootEnvVar skip empty SOFTWORKS_PROJECT_ROOT") nil))
-	(t
-	  progn(
-	    SoftworksDocPathDbg("DP51 FillFromRootEnvVar calling SoftworksDocPathApplyRootDoc")
-	    SoftworksDocPathApplyRootDoc(rootEnv)
-	    SoftworksDocPathDbg("DP52 FillFromRootEnvVar ApplyRootDoc finished")
-	    t))))))
+  progn(
+    SoftworksDocPathDbg("DP50 FillFromRootEnvVar (SOFTWORKS_PROJECT_ROOT)")
+    cond(
+      ((equal nil getShellEnvVar("SOFTWORKS_PROJECT_ROOT"))
+	progn(SoftworksDocPathDbg("DP54 FillFromRootEnvVar SOFTWORKS_PROJECT_ROOT unset") nil))
+      ((equal(strlen(getShellEnvVar("SOFTWORKS_PROJECT_ROOT")) 0))
+	progn(SoftworksDocPathDbg("DP53 FillFromRootEnvVar skip empty SOFTWORKS_PROJECT_ROOT") nil))
+      ((equal 0 0)
+	progn(
+	  SoftworksDocPathDbg("DP51 FillFromRootEnvVar store .../doc/")
+	  SoftworksDocPathStore(strcat(getShellEnvVar("SOFTWORKS_PROJECT_ROOT") "/doc/"))
+	  SoftworksDocPathDbg("DP52 FillFromRootEnvVar stored")
+	  t)))))
 
 procedure(SoftworksDocPathFillFromEnv()
   SoftworksDocPathDbg("DP01 SoftworksDocPathFillFromEnv enter")
