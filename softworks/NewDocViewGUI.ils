@@ -28,7 +28,7 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
-NewDocViewGUI = let(()
+NewDocViewGUI = let(((SoftworksNdDummy nil)))
 
 ; Imports an existing documentation file. (PPTX, PDF, Excel)  Main callback for the form.
 ;procedure( importDocCB(o_field form g_item)
@@ -243,7 +243,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 ; Adjust GUI options for either New cell or Import cell formats
 ; HI treats cyclic ?callback return as a callable — assignments return t in SKILL; end with nil.
 procedure( changeViewToImport( o_field g_scope g_item )
-let(( ))
 	if( (g_item == "New") 
 		then  
 			g_scope->FilePathField->invisible = t 
@@ -256,7 +255,6 @@ let(( ))
 ;			hiChangeFormCallback( form newDocCB)
 	) ; if
 	nil
-);let
 ) ;procedure
 
 ; Update the file name to work nicely with Unix
