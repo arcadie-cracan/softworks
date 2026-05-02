@@ -1,5 +1,6 @@
 ; Tracing: SOFTWORKS_GUI_TRACE=1, SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_DEBUG=1,
 ; or SOFTWORKS_NEW_DOC_GUI_DEBUG=1 for Documentation Cell View stepping ([Softworks NDGUI] G*, V*).
+; Fine DEBASE stepping inside GUICellView / Normalize: SOFTWORKS_GUICELLVIEW_DEBASE_STEP=1 (GVstepNN warns).
 ; DEBASE: when(or(...)) / when(member(...)) can see predicate symbol t → eval: not a function - t.
 ; Return only 1 or nil so when(SoftworksNewDocGuiVerboseP() ...) never expands to when(t ...).
 procedure(SoftworksNewDocViewTraceP()
@@ -15,6 +16,13 @@ procedure(SoftworksNewDocGuiVerboseP()
   cond(
     ((neq nil SoftworksNewDocViewTraceP()) 1)
     ((neq nil getShellEnvVar("SOFTWORKS_NEW_DOC_GUI_DEBUG")) 1)
+    ((equal 0 0) nil)))
+
+; GVstepNN warns when verbose/trace OR SOFTWORKS_GUICELLVIEW_DEBASE_STEP is set (DEBASE-safe cond only).
+procedure(SoftworksGUICellViewStepTraceP()
+  cond(
+    ((neq nil SoftworksNewDocGuiVerboseP()) 1)
+    ((neq nil getShellEnvVar("SOFTWORKS_GUICELLVIEW_DEBASE_STEP")) 1)
     ((equal 0 0) nil)))
 
 ; Default path for ?defValue: delegate to SoftworksInvokeProjectDocDir (builtins only;
@@ -34,6 +42,8 @@ procedure(SoftworksNewDocViewFilePathDefault()
 ; Map lib/cell/view name or DEBASE rootType / viewType tag to xlsx|pptx|pdf|html for doc GUI defaults.
 procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	let(((tag ""))
+	  cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	    warn(sprintf(nil "[Softworks NDGUI] GVnorm enter tagRaw=%L" tagRaw))))
 	  tag = cond(
 	    ((stringp(tagRaw)) tagRaw)
 	    ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw))
@@ -199,26 +209,40 @@ let((SelectionL newForm formName)
 procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
   let((SelectionL defaultImportPath viewTag viewDocKind docKind unknownDocKind importNewDef contentsDef
 	filePathInvisible contentsInvisible fileNameDef)
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep00 enter Lib=%L Cell=%L View=%L RootHint=%L"
+	    LibSelected CellSelected ViewSelected RootTypeHint))))
 	; tconc(nil ...) is required; if SelectionL were ever resolved as global (e.g. symbol t), DEBASE hits eval: not a function - t.
 	SelectionL = nil
+	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep01 SelectionL=nil")))
 	viewTag = cond(
 	  ((stringp(ViewSelected)) ViewSelected)
 	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
 	  ((equal 0 0) ""))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep02 viewTag=%L" viewTag))))
 	viewDocKind = SoftworksNormalizeDocKindTag(viewTag)
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep03 viewDocKind=%L" viewDocKind))))
 	; DEBASE: or(...) lowers to cond ((t second)); never use or here.
 	docKind = cond(
 	  ((neq viewDocKind nil) viewDocKind)
 	  ((equal 0 0) SoftworksNormalizeDocKindTag(RootTypeHint)))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep04 docKind=%L" docKind))))
 	; DEBASE treats cond/when clauses like (t ...) or when(t ...) as (apply t ...): never use symbol t as flag/predicate CAR.
 	unknownDocKind = nil
 	; DEBASE: unless(nil ...) expands like when(t ...) / cond (t ...) — never use unless here.
 	cond(
 	  ((eq docKind nil) unknownDocKind = 'SoftworksUnknownDocKind)
 	  ((and(stringp(docKind) blankstrp(docKind))) unknownDocKind = 'SoftworksUnknownDocKind))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep05 unknownDocKind=%L" unknownDocKind))))
 	importNewDef = "Import"
 	cond(
 	  ((eq unknownDocKind nil) importNewDef = "New"))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep06 importNewDef=%L" importNewDef))))
 	contentsDef = cond(
 	  ((neq unknownDocKind nil) "Power Point (*.pptx)")
 	  ((neq member(docKind list("xlsx")) nil) "Excel Spreadsheet (*.xlsx)")
@@ -226,12 +250,18 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((neq member(docKind list("pdf")) nil) "PDF (*.pdf)")
 	  ((neq member(docKind list("html")) nil) "HTML (*.html)")
 	  ((equal 0 0) "Power Point (*.pptx)"))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep07 contentsDef=%L" contentsDef))))
 	filePathInvisible = nil
 	cond(
 	  ((eq unknownDocKind nil) filePathInvisible = t))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep08 filePathInvisible=%L" filePathInvisible))))
 	contentsInvisible = nil
 	cond(
 	  ((neq unknownDocKind nil) contentsInvisible = t))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep09 contentsInvisible=%L" contentsInvisible))))
 	fileNameDef = cond(
 	  ((neq unknownDocKind nil) "Review.pptx")
 	  ((neq member(docKind list("xlsx")) nil)
@@ -252,13 +282,19 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	      ((member(viewTag list("html"))) "Review.html")
 	      ((equal 0 0) strcat(viewTag ".html"))))
 	  ((equal 0 0) "Review.pptx"))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep10 fileNameDef=%L" fileNameDef))))
+	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep11 before V1 progn")))
 	progn(
 	  when(SoftworksNewDocGuiVerboseP()
 	    warn(sprintf(nil
 	      "[Softworks GUI] GUICellView V1 enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L unknownDocKind=%L importNewDef=%L fileNameDef=%L pathInvisible=%L typeInvisible=%L"
 	      LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind unknownDocKind importNewDef fileNameDef filePathInvisible contentsInvisible)))
 	  nil)
+	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep12 before SoftworksNewDocViewFilePathDefault")))
 	defaultImportPath = SoftworksNewDocViewFilePathDefault()
+	cond(((neq SoftworksGUICellViewStepTraceP() nil)
+	  warn(sprintf(nil "[Softworks NDGUI] GVstep13 defaultImportPath=%L" defaultImportPath))))
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 		?name       'LibNameField
