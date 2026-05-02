@@ -206,7 +206,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	when(and(stringp(docKind) blankstrp(docKind)) unknownDocKind = t)
 	importNewDef = "Import"
 	unless(unknownDocKind importNewDef = "New")
-	contentsDef = prog((_swNdTmp nil)
+	contentsDef = prog(
+	  ((SwNdTmp nil))
 	  when(unknownDocKind return("Power Point (*.pptx)"))
 	  when(member(docKind list("xlsx")) return("Excel Spreadsheet (*.xlsx)"))
 	  when(member(docKind list("pptx")) return("Power Point (*.pptx)"))
@@ -217,7 +218,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	unless(unknownDocKind filePathInvisible = t)
 	contentsInvisible = nil
 	when(unknownDocKind contentsInvisible = t)
-	fileNameDef = prog((_swNdTmp nil)
+	fileNameDef = prog(
+	  ((SwNdTmp nil))
 	  when(unknownDocKind return("Review.pptx"))
 	  when(member(docKind list("xlsx"))
 	    return(if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx")))
@@ -423,10 +425,10 @@ procedure( UpdateFileContents(_field scope item)
 
 list(nil 
 	'CombinedGUI CombinedGUI
-))
+)))
 
 putprop(Import['Softworks] NewDocViewGUI 'NewDocViewGUI)
-)
+))
 ; Must be *outside* the package let: assigning inside the let can leave SdmCombinedGUI
 ; scoped to the let, so SdmXLSX and boundp('SdmCombinedGUI) do not see it after load.
 SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
