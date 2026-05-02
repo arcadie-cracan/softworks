@@ -197,7 +197,7 @@ let((SelectionL newForm formName)
 
 ; Create basic GUI with button for import or new view 
 procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
-  let((SelectionL defaultImportPath viewTag docKind unknownDocKind importNewDef contentsDef
+  let((SelectionL defaultImportPath viewTag viewDocKind docKind unknownDocKind importNewDef contentsDef
 	filePathInvisible contentsInvisible fileNameDef)
 	; tconc(nil ...) is required; if SelectionL were ever resolved as global (e.g. symbol t), DEBASE hits eval: not a function - t.
 	SelectionL = nil
@@ -205,7 +205,11 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((stringp(ViewSelected)) ViewSelected)
 	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
 	  ((equal 0 0) ""))
-	docKind = or(SoftworksNormalizeDocKindTag(viewTag) SoftworksNormalizeDocKindTag(RootTypeHint))
+	viewDocKind = SoftworksNormalizeDocKindTag(viewTag)
+	; DEBASE: or(...) lowers to cond ((t second)); never use or here.
+	docKind = cond(
+	  ((neq viewDocKind nil) viewDocKind)
+	  ((equal 0 0) SoftworksNormalizeDocKindTag(RootTypeHint)))
 	; DEBASE treats cond/when clauses like (t ...) or when(t ...) as (apply t ...): never use symbol t as flag/predicate CAR.
 	unknownDocKind = nil
 	; DEBASE: unless(nil ...) expands like when(t ...) / cond (t ...) — never use unless here.
@@ -240,7 +244,8 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	      ((equal 0 0) strcat(viewTag ".pptx"))))
 	  ((neq member(docKind list("pdf")) nil)
 	    cond(
-	      ((or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))) "Review.pdf")
+	      ((neq member(viewTag list("pdf")) nil) "Review.pdf")
+	      ((neq member(viewTag list("pdf_view")) nil) "Review.pdf")
 	      ((equal 0 0) strcat(viewTag ".pdf"))))
 	  ((neq member(docKind list("html")) nil)
 	    cond(
@@ -365,10 +370,11 @@ procedure( changeViewToImport( o_field g_scope g_item )
 	cond(
 	  ((and g_scope g_scope->FilePathField g_scope->ContentsOption)
 	   let(((pickNew nil))
-	     pickNew = or(
-	       member(g_item list("New" 'New))
-	       (stringp(g_item) && zerop(strcmp(g_item "New")))
-	       (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
+	     pickNew = cond(
+	       ((neq member(g_item list("New" 'New)) nil) 1)
+	       ((neq (stringp(g_item) && zerop(strcmp(g_item "New"))) nil) 1)
+	       ((neq (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))) nil) 1)
+	       ((equal 0 0) nil))
 	     cond(
 	       ((eq pickNew nil)
 		 progn(
