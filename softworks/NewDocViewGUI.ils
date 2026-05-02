@@ -328,7 +328,7 @@ procedure( changeViewToImport( o_field g_scope g_item )
 	    warn(sprintf(nil "[Softworks NDGUI] changeViewToImport enter g_item=%L stringp=%L symbolp=%L"
 	      g_item stringp(g_item) symbolp(g_item))))
 	  nil)
-	let(((pickNew nil)))
+	let(((pickNew nil))
 	  pickNew = or(
 	    member(g_item list("New" 'New))
 	    (stringp(g_item) && zerop(strcmp(g_item "New")))
