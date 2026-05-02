@@ -202,23 +202,28 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	docKind = or(SoftworksNormalizeDocKindTag(viewTag) SoftworksNormalizeDocKindTag(RootTypeHint))
 	docIntentFlag = not(not(docKind))
 	importNewDef = if(docIntentFlag then "New" else "Import")
-	contentsDef = cond(
-	  ((not(docIntentFlag)) "Power Point (*.pptx)")
-	  ((zerop(strcmp(docKind "xlsx"))) "Excel Spreadsheet (*.xlsx)")
-	  ((zerop(strcmp(docKind "pptx"))) "Power Point (*.pptx)")
-	  ((zerop(strcmp(docKind "pdf"))) "PDF (*.pdf)")
-	  ((zerop(strcmp(docKind "html"))) "HTML (*.html)")
-	  (t "Power Point (*.pptx)"))
+	; DEBASE/HI can mis-handle cond when a predicate evaluates to symbol t (e.g. zerop -> t): eval: not a function - t.
+	; Use member/string compares instead of zerop(strcmp(...)) as cond predicates.
+	contentsDef = if(not(docIntentFlag) then "Power Point (*.pptx)"
+	  else if(member(docKind list("xlsx")) then "Excel Spreadsheet (*.xlsx)"
+	  else if(member(docKind list("pptx")) then "Power Point (*.pptx)"
+	  else if(member(docKind list("pdf")) then "PDF (*.pdf)"
+	  else if(member(docKind list("html")) then "HTML (*.html)"
+	  else "Power Point (*.pptx)")))))
 	filePathInvisible = docIntentFlag
 	contentsInvisible = not(docIntentFlag)
-	fileNameDef = cond(
-	  ((not(docIntentFlag)) "Review.pptx")
-	  ((zerop(strcmp(docKind "xlsx"))) if(zerop(strcmp(viewTag "xlsx")) "Review.xlsx" strcat(viewTag ".xlsx")))
-	  ((zerop(strcmp(docKind "pptx"))) if(zerop(strcmp(viewTag "pptx")) "Review.pptx" strcat(viewTag ".pptx")))
-	  ((zerop(strcmp(docKind "pdf")))
-	    if(or(zerop(strcmp(viewTag "pdf")) zerop(strcmp(viewTag "pdf_view"))) "Review.pdf" strcat(viewTag ".pdf")))
-	  ((zerop(strcmp(docKind "html"))) if(zerop(strcmp(viewTag "html")) "Review.html" strcat(viewTag ".html")))
-	  (t "Review.pptx"))
+	fileNameDef = if(not(docIntentFlag) then "Review.pptx"
+	  else if(member(docKind list("xlsx"))
+	    then if(member(viewTag list("xlsx")) then "Review.xlsx" strcat(viewTag ".xlsx"))
+	  else if(member(docKind list("pptx"))
+	    then if(member(viewTag list("pptx")) then "Review.pptx" strcat(viewTag ".pptx"))
+	  else if(member(docKind list("pdf"))
+	    then if(or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))
+	      then "Review.pdf"
+	      strcat(viewTag ".pdf")))
+	  else if(member(docKind list("html"))
+	    then if(member(viewTag list("html")) then "Review.html" strcat(viewTag ".html")))
+	  else "Review.pptx")))
 	progn(
 	  when(SoftworksNewDocGuiVerboseP()
 	    warn(sprintf(nil
