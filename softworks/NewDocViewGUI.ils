@@ -17,6 +17,15 @@ procedure(SoftworksNewDocViewFilePathDefault()
   )
 )
 
+; Map lib/cell/view name or DEBASE rootType / viewType tag to xlsx|pptx|pdf|html for doc GUI defaults.
+procedure(SoftworksNormalizeDocKindTag(tagRaw)
+	let((tag cond((stringp(tagRaw)) tagRaw) ((symbolp(tagRaw)) sprintf(nil "%s" tagRaw)) (t ""))))
+	if(blankstrp(tag) then nil
+	else cond(
+	  ((member(tag '("xlsx" "pptx" "pdf" "html"))) tag)
+	  ((zerop(strcmp(tag "pdf_view"))) "pdf")
+	  (t nil))))
+
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
 NewDocViewGUI = let(()
@@ -88,12 +97,13 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 )
 
 ; Choose between import or new cell
-procedure( CombinedGUI(LibSelected CellSelected ViewSelected "SSS")
+procedure( CombinedGUI(LibSelected CellSelected ViewSelected @optional RootTypeHint)
 let((SelectionL newForm formName)
 	when(SoftworksNewDocViewTraceP()
 	  warn(sprintf(nil
-	    "[Softworks GUI] CombinedGUI: enter lib=%L cell=%L view=%L" LibSelected CellSelected ViewSelected)))
-	SelectionL = GUICellView(LibSelected CellSelected ViewSelected)
+	    "[Softworks GUI] CombinedGUI: enter lib=%L cell=%L view=%L rootTypeHint=%L"
+	    LibSelected CellSelected ViewSelected RootTypeHint)))
+	SelectionL = GUICellView(LibSelected CellSelected ViewSelected RootTypeHint)
 	when(SoftworksNewDocViewTraceP()
 	  warn(sprintf(nil
 	    "[Softworks GUI] CombinedGUI: GUICellView returned, SelectionL car=%L" car(SelectionL))))
@@ -121,35 +131,37 @@ let((SelectionL newForm formName)
 ))
 
 ; Create basic GUI with button for import or new view 
-procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
-  let((SelectionL defaultImportPath viewTag docIntentP importNewDef contentsDef
+procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
+  let((SelectionL defaultImportPath viewTag docKind docIntentFlag importNewDef contentsDef
 	filePathInvisible contentsInvisible fileNameDef)
 	viewTag = cond(
 	  ((stringp(ViewSelected)) ViewSelected)
 	  ((symbolp(ViewSelected)) sprintf(nil "%s" ViewSelected))
 	  (t ""))
-	docIntentP = and(not(blankstrp(viewTag)) member(viewTag '("xlsx" "pptx" "pdf" "html")))
-	importNewDef = if(docIntentP then "New" else "Import")
+	docKind = or(SoftworksNormalizeDocKindTag(viewTag) SoftworksNormalizeDocKindTag(RootTypeHint))
+	docIntentFlag = not(not(docKind))
+	importNewDef = if(docIntentFlag then "New" else "Import")
 	contentsDef = cond(
-	  ((not(docIntentP)) "Power Point (*.pptx)")
-	  ((zerop(strcmp(viewTag "xlsx"))) "Excel Spreadsheet (*.xlsx)")
-	  ((zerop(strcmp(viewTag "pptx"))) "Power Point (*.pptx)")
-	  ((zerop(strcmp(viewTag "pdf"))) "PDF (*.pdf)")
-	  ((zerop(strcmp(viewTag "html"))) "HTML (*.html)")
+	  ((not(docIntentFlag)) "Power Point (*.pptx)")
+	  ((zerop(strcmp(docKind "xlsx"))) "Excel Spreadsheet (*.xlsx)")
+	  ((zerop(strcmp(docKind "pptx"))) "Power Point (*.pptx)")
+	  ((zerop(strcmp(docKind "pdf"))) "PDF (*.pdf)")
+	  ((zerop(strcmp(docKind "html"))) "HTML (*.html)")
 	  (t "Power Point (*.pptx)"))
-	filePathInvisible = docIntentP
-	contentsInvisible = not(docIntentP)
+	filePathInvisible = docIntentFlag
+	contentsInvisible = not(docIntentFlag)
 	fileNameDef = cond(
-	  ((not(docIntentP)) "Review.pptx")
-	  ((zerop(strcmp(viewTag "xlsx"))) "Review.xlsx")
-	  ((zerop(strcmp(viewTag "pptx"))) "Review.pptx")
-	  ((zerop(strcmp(viewTag "pdf"))) "Review.pdf")
-	  ((zerop(strcmp(viewTag "html"))) "Review.html")
+	  ((not(docIntentFlag)) "Review.pptx")
+	  ((zerop(strcmp(docKind "xlsx"))) if(zerop(strcmp(viewTag "xlsx")) "Review.xlsx" strcat(viewTag ".xlsx")))
+	  ((zerop(strcmp(docKind "pptx"))) if(zerop(strcmp(viewTag "pptx")) "Review.pptx" strcat(viewTag ".pptx")))
+	  ((zerop(strcmp(docKind "pdf")))
+	    if(or(zerop(strcmp(viewTag "pdf")) zerop(strcmp(viewTag "pdf_view"))) "Review.pdf" strcat(viewTag ".pdf")))
+	  ((zerop(strcmp(docKind "html"))) if(zerop(strcmp(viewTag "html")) "Review.html" strcat(viewTag ".html")))
 	  (t "Review.pptx"))
 	when(SoftworksNewDocViewTraceP()
 	  warn(sprintf(nil
-	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L viewTag=%L docIntentP=%L importNewDef=%L"
-	    LibSelected CellSelected ViewSelected viewTag docIntentP importNewDef)))
+	    "[Softworks GUI] GUICellView: enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L docIntentFlag=%L importNewDef=%L"
+	    LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind docIntentFlag importNewDef)))
 	defaultImportPath = SoftworksNewDocViewFilePathDefault()
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
@@ -229,8 +241,9 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected "SSS")
 
 
 ; Adjust GUI options for either New cell or Import cell formats
+; HI treats cyclic ?callback return as a callable — assignments return t in SKILL; end with nil.
 procedure( changeViewToImport( o_field g_scope g_item )
-let(( )
+let(( ))
 	if( (g_item == "New") 
 		then  
 			g_scope->FilePathField->invisible = t 
@@ -242,6 +255,7 @@ let(( )
 			;hiUpdateFormBlock( g_scope )
 ;			hiChangeFormCallback( form newDocCB)
 	) ; if
+	nil
 );let
 ) ;procedure
 
@@ -287,6 +301,7 @@ let( (comPat1 comPat2 comPat3 out)
 ))
 
 ; Changes FileNameField extension based on drop down menu
+; HI treats cyclic ?callback return as a callable — case branches end with assignments (-> t); return nil.
 procedure( UpdateFileContents(_field scope item)
    case(item 
 		(("Power Point (*.pptx)") 
@@ -302,6 +317,7 @@ procedure( UpdateFileContents(_field scope item)
 		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html")
 		 scope->ViewNameField->value = "html")
    ) ; case
+   nil
 ) ; procedure
 
 list(nil 

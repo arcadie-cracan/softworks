@@ -126,7 +126,7 @@ procedure(DataTrigger(@optional argList)
 			  warn(sprintf(nil
 			    "[Softworks XLSX] DataTrigger T5: calling CombinedGUI (cgui) with lib cell view=%L %L %L"
 			    libName cellName viewName)))
-			cgui(libName cellName viewName)
+			cgui(libName cellName viewName rootType)
 			when(SdmXLSXLogTriggerP()
 			  warn("[Softworks XLSX] DataTrigger T5b: CombinedGUI (cgui) returned ok"))
 		else
