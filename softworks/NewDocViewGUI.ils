@@ -284,18 +284,23 @@ procedure( UpdateFileContents(_field scope item)
 procedure( SoftworksApplyDocumentationGuiIntent(form ViewSelected)
 	when(and(stringp(ViewSelected)
 		 member(ViewSelected '("xlsx" "pptx" "pdf" "html")))
-	let((choice case(ViewSelected
-	    ("xlsx" "Excel Spreadsheet (*.xlsx)")
-	    ("pptx" "Power Point (*.pptx)")
-	    ("pdf" "PDF (*.pdf)")
-	    ("html" "HTML (*.html)")
-	    (t nil)))
+	progn(
 	  form->ImportNewDropdown->value = "New"
 	  form->FilePathField->invisible = t
 	  form->ContentsOption->invisible = nil
-	  when(choice
-	    form->ContentsOption->value = choice
-	    UpdateFileContents(nil form choice)))))
+	  ; SKILL let bindings reject case(...) as initializer on some builds; branch explicitly.
+	  when(zerop(strcmp(ViewSelected "xlsx"))
+	    form->ContentsOption->value = "Excel Spreadsheet (*.xlsx)"
+	    UpdateFileContents(nil form "Excel Spreadsheet (*.xlsx)"))
+	  when(zerop(strcmp(ViewSelected "pptx"))
+	    form->ContentsOption->value = "Power Point (*.pptx)"
+	    UpdateFileContents(nil form "Power Point (*.pptx)"))
+	  when(zerop(strcmp(ViewSelected "pdf"))
+	    form->ContentsOption->value = "PDF (*.pdf)"
+	    UpdateFileContents(nil form "PDF (*.pdf)"))
+	  when(zerop(strcmp(ViewSelected "html"))
+	    form->ContentsOption->value = "HTML (*.html)"
+	    UpdateFileContents(nil form "HTML (*.html)")))))
 
 list(nil 
 	'CombinedGUI CombinedGUI
