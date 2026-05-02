@@ -302,7 +302,7 @@ procedure(SoftworksDocPathFillFromEnvBranch(hitDoc)
 	  prog2(SoftworksDocPathApplyPwdDocWarn() nil)))
     prog2(
       SoftworksDocPathDbg("DP09 SoftworksDocPathFillFromEnv exit")
-      nil)))
+      nil))))
 
 procedure(SoftworksDocPathFillFromEnvAfterHit(hitDoc)
   prog2(
@@ -311,7 +311,7 @@ procedure(SoftworksDocPathFillFromEnvAfterHit(hitDoc)
     SoftworksDocPathFillFromEnvBranch(hitDoc)))
 
 procedure(SoftworksDocPathFillFromEnvAfterDbg()
-  let(((hitDoc (SoftworksDocPathFillFromDocEnvVar()))))
+  let(((hitDoc (SoftworksDocPathFillFromDocEnvVar())))
     SoftworksDocPathFillFromEnvAfterHit(hitDoc)))
 
 procedure(SoftworksDocPathFillFromEnv()
