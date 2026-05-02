@@ -1,17 +1,21 @@
 ; Tracing: SOFTWORKS_GUI_TRACE=1, SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_DEBUG=1,
 ; or SOFTWORKS_NEW_DOC_GUI_DEBUG=1 for Documentation Cell View stepping ([Softworks NDGUI] G*, V*).
+; DEBASE: when(or(...)) / when(member(...)) can see predicate symbol t → eval: not a function - t.
+; Return only 1 or nil so when(SoftworksNewDocGuiVerboseP() ...) never expands to when(t ...).
 procedure(SoftworksNewDocViewTraceP()
-  or(
-    getShellEnvVar("SOFTWORKS_GUI_TRACE")
-    getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
-    getShellEnvVar("SOFTWORKS_DEBUG")))
+  cond(
+    ((neq nil getShellEnvVar("SOFTWORKS_GUI_TRACE")) 1)
+    ((neq nil getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")) 1)
+    ((neq nil getShellEnvVar("SOFTWORKS_DEBUG")) 1)
+    ((equal 0 0) nil)))
 
 ; Documentation Cell View dialog: extra step logs without full GUI trace.
 ; SOFTWORKS_NEW_DOC_GUI_DEBUG=1 OR any SoftworksNewDocViewTraceP() env.
 procedure(SoftworksNewDocGuiVerboseP()
-  or(
-    SoftworksNewDocViewTraceP()
-    getShellEnvVar("SOFTWORKS_NEW_DOC_GUI_DEBUG")))
+  cond(
+    ((neq nil SoftworksNewDocViewTraceP()) 1)
+    ((neq nil getShellEnvVar("SOFTWORKS_NEW_DOC_GUI_DEBUG")) 1)
+    ((equal 0 0) nil)))
 
 ; Default path for ?defValue: delegate to SoftworksInvokeProjectDocDir (builtins only;
 ; does not call softworksProjectDocDir / d() — those can still be "not a function - nil"
@@ -211,39 +215,38 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	importNewDef = "Import"
 	cond(
 	  ((eq unknownDocKind nil) importNewDef = "New"))
-	contentsDef = prog(
-	  ((SwNdTmp nil))
-	  when(unknownDocKind return("Power Point (*.pptx)"))
-	  when(member(docKind list("xlsx")) return("Excel Spreadsheet (*.xlsx)"))
-	  when(member(docKind list("pptx")) return("Power Point (*.pptx)"))
-	  when(member(docKind list("pdf")) return("PDF (*.pdf)"))
-	  when(member(docKind list("html")) return("HTML (*.html)"))
-	  return("Power Point (*.pptx)"))
+	contentsDef = cond(
+	  ((neq unknownDocKind nil) "Power Point (*.pptx)")
+	  ((neq member(docKind list("xlsx")) nil) "Excel Spreadsheet (*.xlsx)")
+	  ((neq member(docKind list("pptx")) nil) "Power Point (*.pptx)")
+	  ((neq member(docKind list("pdf")) nil) "PDF (*.pdf)")
+	  ((neq member(docKind list("html")) nil) "HTML (*.html)")
+	  ((equal 0 0) "Power Point (*.pptx)"))
 	filePathInvisible = nil
 	cond(
 	  ((eq unknownDocKind nil) filePathInvisible = t))
 	contentsInvisible = nil
-	when(unknownDocKind contentsInvisible = t)
-	fileNameDef = prog(
-	  ((SwNdTmp nil))
-	  when(unknownDocKind return("Review.pptx"))
-	  when(member(docKind list("xlsx"))
-	    return(cond(
+	cond(
+	  ((neq unknownDocKind nil) contentsInvisible = t))
+	fileNameDef = cond(
+	  ((neq unknownDocKind nil) "Review.pptx")
+	  ((neq member(docKind list("xlsx")) nil)
+	    cond(
 	      ((member(viewTag list("xlsx"))) "Review.xlsx")
-	      ((equal 0 0) strcat(viewTag ".xlsx")))))
-	  when(member(docKind list("pptx"))
-	    return(cond(
+	      ((equal 0 0) strcat(viewTag ".xlsx"))))
+	  ((neq member(docKind list("pptx")) nil)
+	    cond(
 	      ((member(viewTag list("pptx"))) "Review.pptx")
-	      ((equal 0 0) strcat(viewTag ".pptx")))))
-	  when(member(docKind list("pdf"))
-	    return(cond(
+	      ((equal 0 0) strcat(viewTag ".pptx"))))
+	  ((neq member(docKind list("pdf")) nil)
+	    cond(
 	      ((or(member(viewTag list("pdf")) member(viewTag list("pdf_view")))) "Review.pdf")
-	      ((equal 0 0) strcat(viewTag ".pdf")))))
-	  when(member(docKind list("html"))
-	    return(cond(
+	      ((equal 0 0) strcat(viewTag ".pdf"))))
+	  ((neq member(docKind list("html")) nil)
+	    cond(
 	      ((member(viewTag list("html"))) "Review.html")
-	      ((equal 0 0) strcat(viewTag ".html")))))
-	  return("Review.pptx"))
+	      ((equal 0 0) strcat(viewTag ".html"))))
+	  ((equal 0 0) "Review.pptx"))
 	progn(
 	  when(SoftworksNewDocGuiVerboseP()
 	    warn(sprintf(nil
@@ -359,23 +362,23 @@ procedure( changeViewToImport( o_field g_scope g_item )
 	    warn(sprintf(nil "[Softworks NDGUI] changeViewToImport enter g_item=%L stringp=%L symbolp=%L"
 	      g_item stringp(g_item) symbolp(g_item))))
 	  nil)
-	when(and(g_scope g_scope->FilePathField g_scope->ContentsOption)
-	  let(((pickNew nil))
-	    pickNew = or(
-	      member(g_item list("New" 'New))
-	      (stringp(g_item) && zerop(strcmp(g_item "New")))
-	      (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
-	    ; DEBASE: unless(eq ... nil) / unless(pickNew ...) hits unless(nil ...) → (t ...) expansion.
-	    cond(
-	      ((eq pickNew nil)
-		progn(
-		  g_scope->ContentsOption->invisible = t
-		  g_scope->FilePathField->invisible = nil))
-	      ((equal 0 0)
-		progn(
-		  g_scope->FilePathField->invisible = t 
-		  g_scope->ContentsOption->invisible = nil)))
-	    nil))
+	cond(
+	  ((and g_scope g_scope->FilePathField g_scope->ContentsOption)
+	   let(((pickNew nil))
+	     pickNew = or(
+	       member(g_item list("New" 'New))
+	       (stringp(g_item) && zerop(strcmp(g_item "New")))
+	       (symbolp(g_item) && zerop(strcmp(sprintf(nil "%s" g_item) "New"))))
+	     cond(
+	       ((eq pickNew nil)
+		 progn(
+		   g_scope->ContentsOption->invisible = t
+		   g_scope->FilePathField->invisible = nil))
+	       ((equal 0 0)
+		 progn(
+		   g_scope->FilePathField->invisible = t 
+		   g_scope->ContentsOption->invisible = nil)))
+	     nil)))
 )
 
 ; Update the file name to work nicely with Unix
