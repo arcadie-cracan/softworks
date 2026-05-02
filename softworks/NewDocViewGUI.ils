@@ -28,7 +28,7 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 
 let((NewDocViewGUI
 	   (module_description "The Gui for creating and importing documentation views"))
-NewDocViewGUI = let(((SoftworksNdDummy nil)))
+NewDocViewGUI = let(((SoftworksNdDummy nil))
 
 ; Imports an existing documentation file. (PPTX, PDF, Excel)  Main callback for the form.
 ;procedure( importDocCB(o_field form g_item)
