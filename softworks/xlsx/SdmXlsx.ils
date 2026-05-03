@@ -81,6 +81,7 @@ procedure(DataTrigger(@optional argList)
 	)))
 
 SdmXLSXDataTrigger = DataTrigger
+putd('SdmXLSXDataTrigger SdmXLSXDataTrigger)
 unless(procedurep(SdmXLSXDataTrigger)
   warn(sprintf(nil
     "[Softworks XLSX] FATAL: SdmXLSXDataTrigger is not a procedure after bind (value=%L); DEBASE xlsx trigger will fail."

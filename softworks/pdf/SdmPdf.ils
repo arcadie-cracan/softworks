@@ -78,6 +78,7 @@ procedure(DataTrigger(@optional argList)
 	)))
 
 SdmPdfDataTrigger = DataTrigger
+putd('SdmPdfDataTrigger SdmPdfDataTrigger)
 unless(procedurep(SdmPdfDataTrigger)
   warn(sprintf(nil
     "[Softworks PDF] FATAL: SdmPdfDataTrigger is not a procedure after bind (value=%L); DEBASE pdf trigger will fail."

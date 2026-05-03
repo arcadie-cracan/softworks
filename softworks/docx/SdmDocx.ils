@@ -81,6 +81,7 @@ procedure(DataTrigger(@optional argList)
 	)))
 
 SdmDocxDataTrigger = DataTrigger
+putd('SdmDocxDataTrigger SdmDocxDataTrigger)
 unless(procedurep(SdmDocxDataTrigger)
   warn(sprintf(nil
     "[Softworks DOCX] FATAL: SdmDocxDataTrigger is not a procedure after bind (value=%L); DEBASE docx trigger will fail."

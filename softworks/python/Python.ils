@@ -108,6 +108,7 @@ procedure(DataTrigger(@optional argList)
 	)))
 
 SdmPyDataTrigger = DataTrigger
+putd('SdmPyDataTrigger SdmPyDataTrigger)
 unless(procedurep(SdmPyDataTrigger)
   warn(sprintf(nil
     "[Softworks Python] FATAL: SdmPyDataTrigger is not a procedure after bind (value=%L); DEBASE triggers will fail."

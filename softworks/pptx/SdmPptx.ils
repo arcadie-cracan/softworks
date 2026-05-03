@@ -81,6 +81,7 @@ procedure(DataTrigger(@optional argList)
 	)))
 
 SdmPPTXDataTrigger = DataTrigger
+putd('SdmPPTXDataTrigger SdmPPTXDataTrigger)
 unless(procedurep(SdmPPTXDataTrigger)
   warn(sprintf(nil
     "[Softworks PPTX] FATAL: SdmPPTXDataTrigger is not a procedure after bind (value=%L); DEBASE pptx trigger will fail."
