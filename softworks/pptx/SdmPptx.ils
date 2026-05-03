@@ -24,7 +24,7 @@ procedure(uninit() let(((out t))
 ))
 
 procedure(startReader(filePath)
-	system(strcat("libreoffice --impress " filePath)))
+	ipcBeginProcess(strcat("libreoffice --impress " filePath) "" nil nil))
 
 ; Must run in nested context so NewDocViewGUI->CombinedGUI (nested) is callable, like XLSX.
 procedure(DataTrigger(@optional argList)

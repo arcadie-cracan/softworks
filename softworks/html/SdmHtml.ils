@@ -22,7 +22,7 @@ procedure(uninit()
 	Softworks->uninitDeRegApp(viewSetup))
 
 procedure(startReader(filePath)
-	system(strcat("firefox " filePath)))
+	ipcBeginProcess(strcat("firefox " filePath) "" nil nil))
 
 ; HTML is an import/open-only view type — HTML pages are generated artifacts, not created blank.
 ; If the view does not exist, direct the user to the Library Manager import action.

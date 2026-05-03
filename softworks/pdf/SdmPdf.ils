@@ -23,7 +23,7 @@ procedure(uninit() let(((out t))
 ))
 
 procedure(startReader(filePath)
-	system(strcat("firefox " filePath)))
+	ipcBeginProcess(strcat("firefox " filePath) "" nil nil))
 
 ; PDF is an import/open-only view type — PDFs are generated artifacts, not created blank.
 ; If the view does not exist, direct the user to the Library Manager import action.

@@ -24,7 +24,7 @@ procedure(uninit() let(((out t))
 ))
 
 procedure(startReader(filePath)
-	system(strcat("libreoffice --calc " filePath)))
+	ipcBeginProcess(strcat("libreoffice --calc " filePath) "" nil nil))
 
 ; Must run in nested context so NewDocViewGUI->CombinedGUI (nested) is callable, like PPTX.
 procedure(DataTrigger(@optional argList)
