@@ -133,7 +133,7 @@ unless(procedurep(SdmPyDataTrigger)
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-      if(procedurep(SdmVsCodeOpen) then
+      if(procedurep(getd('SdmVsCodeOpen)) then
         SdmVsCodeOpen(filePath)
       else
         warn("[Softworks Python] SdmVsCodeOpen is not bound; cannot open editor.")))

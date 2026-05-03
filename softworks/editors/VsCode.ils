@@ -60,24 +60,21 @@ list(nil
 	'StartLmgrCB StartLmgrCB
 ))
 
-VsCode = Module->New('VsCode 
+; Capture procedures from the inner-let alist BEFORE Module->New replaces VsCode
+; with a module wrapper (whose ->field lookups may return nil).
+SdmVsCodeOpen = VsCode->open
+SdmVsCodeStartLmgrCB = VsCode->StartLmgrCB
+VsCode = Module->New('VsCode
   ?module VsCode
   ?parent Softworks
   ?description module_description)
 Module->AddFunction(Softworks 'VsCode VsCode)
-
-; Must be inside the let where VsCode is in scope.
-SdmVsCodeOpen = VsCode->open
 putd('SdmVsCodeOpen SdmVsCodeOpen)
-SdmVsCodeStartLmgrCB = VsCode->StartLmgrCB
+putd('SdmVsCodeStartLmgrCB SdmVsCodeStartLmgrCB)
 unless(procedurep(SdmVsCodeOpen)
-  warn(sprintf(nil
-    "[Softworks VsCode] FATAL: SdmVsCodeOpen is not a procedure after bind (value=%L); Python/notebook editor will not open."
-    SdmVsCodeOpen)))
+  warn("[Softworks VsCode] FATAL: SdmVsCodeOpen is not a procedure; Python/notebook editor will not open."))
 unless(procedurep(SdmVsCodeStartLmgrCB)
-  warn(sprintf(nil
-    "[Softworks VsCode] FATAL: SdmVsCodeStartLmgrCB is not a procedure after bind (value=%L); LMgr menu will not work."
-    SdmVsCodeStartLmgrCB)))
+  warn("[Softworks VsCode] FATAL: SdmVsCodeStartLmgrCB is not a procedure; LMgr menu will not work."))
 )
 
 printf("done\n")
