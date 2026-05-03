@@ -122,7 +122,7 @@ let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess
 	if( viewFileObj then
 		overwrite = hiDisplayAppDBox(
 			?name 'OverwriteDBox
-			?dboxBanner "Overwrite Existing Cellview?"
+			?dboxBanner "Overwrite Existing Cell View?"
 			?dboxText strcat("Do you want to overwrite the following existing cell view?\nLib: " LibName "\nCell: " CellName "\nView: " ViewName)
 			)
 		when(overwrite && ddNeedCheckout(viewFileObj)
@@ -209,9 +209,9 @@ let((SelectionL newForm formName)
 		5:130 400:30 100))
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
-		?prompt    "Import as file name"
+		?prompt    "Import as File Name"
 		?defValue  ""
-		?toolTip   "Leave blank to use source file name"
+		?toolTip   "Leave Blank to Use Source File Name"
 		?modifyCallback CheckFileName
 		?editable  t
 		?enabled   t)
