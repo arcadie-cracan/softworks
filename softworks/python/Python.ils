@@ -54,12 +54,14 @@ procedure(DataTrigger(@optional argList)
 		("rst"      ".rst")
 		(t          ".py"))
 
-	; viewFileId is a dd object: use ~>name, not ->name (avoids "not a function - nil").
+	; viewFileId may be a dd object, db object, or nil depending on the Cadence build.
+	; ~>name is unsafe on object types that lack a name method — return nil and let
+	; the strcat fallback below derive the name from viewName + extension instead.
 	viewFileName = let((vf)
 	  vf = argList->viewFileId
 	  if(not(vf) then argList->fileName
 	  else if(stringp(vf) then vf
-	  else vf~>name)))
+	  else nil))
 	; When DEBASE omits both, use viewName + extension as the conventional master name.
 	when(not(viewFileName)
 	  viewFileName = strcat(viewName extension))
