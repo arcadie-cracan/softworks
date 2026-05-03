@@ -109,9 +109,10 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 	        (ext car(reverse(parseString(FileName ".")))))
 	     cond(
 	       ((equal ext "xlsx")
-	        cond(
-	          ((neq procedurep(SdmXLSXStartReader) nil)
-	           SdmXLSXStartReader(fp))))
+	        let(((m VrtImport['Softworks]->XLSX))
+	          cond(
+	            ((neq procedurep(m->startReader) nil)
+	             m->startReader(fp)))))
 	       ((equal ext "pptx")
 	        let(((m VrtImport['Softworks]->PPTX))
 	          cond(

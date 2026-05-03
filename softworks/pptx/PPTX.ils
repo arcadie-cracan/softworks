@@ -1,7 +1,7 @@
 printf("  Loading PPTX support...")
 
-; Bind SdmPPTXDataTrigger to the DataTrigger procedure here; *->DataTrigger on the alist
-; can be nil on some builds, which breaks deRegSdmApp / DEBASE.
+; Set SdmPPTXDataTrigger to the procedure object here, not as PPTX->DataTrigger: on some
+; Virtuoso builds the alist "->" form returns nil, so init sees a non-function trigger.
 
 let((PPTX
 	   (module_description "Adds a PowerPoint (*.pptx) view type to Virtuoso")
@@ -10,55 +10,87 @@ let((PPTX
 PPTX = let((
 	(viewSetup '(
 	;(viewType  appName dataTrigger parentType)
-	("pptx" "libreoffice_pptx" "SdmPPTXDataTrigger" nil) 
+	("pptx" "libreoffice_pptx" "SdmPPTXDataTrigger" nil)
 	)))
 
-procedure(init() 
-"Register all PPTX Cellview Types "
-let(((out t))
+; Register all PPTX Cellview Types
+procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
 ))
 
-procedure(uninit() 
-"uninitialize all PPTX views so they can be redefined"
-let(((out t))
+; Uninitialize all PPTX views so they can be redefined
+procedure(uninit() let(((out t))
 	Softworks->uninitDeRegApp(viewSetup)
 ))
 
-; Open a PPTX view with the function specified by startReader
-;  startReader should start the editor with no arguments specified.
-;  startReader should open any number of views when specified as additional arguments.
+procedure(startReader(filePath)
+	system(strcat("libreoffice --impress " filePath)))
+
+; Must run in nested context so NewDocViewGUI->CombinedGUI (nested) is callable, like XLSX.
 procedure(DataTrigger(@optional argList)
-    "Open a PPTX view with the function specified by startReader.
-	startReader should start the editor with no arguments specified and
-	open any number of views when specified as additional arguments."
-	let((libName cellName file fileName extension objId viewFileName viewName rootType templateName)	
+	if(not(argList) then
+		warn("Softworks: SdmPPTXDataTrigger called with nil argList")
+		t
+	else
+	let((libName cellName lname file objId viewFileName viewName rootType fileReadable ndg cgui)
 	libName = argList->libName
 	cellName = argList->cellName
-  viewName = argList->viewName
+	viewName = argList->viewName
 	rootType = argList->rootType
-	viewFileName = argList->viewFileId->name
+	; viewFileId is a dd object on argList: use ~>name, not ->name (avoids "not a function - nil").
+	viewFileName = let((vf)
+	  vf = argList->viewFileId
+	  if(not(vf) then argList->fileName
+	  else if(stringp(vf) then vf
+	  else vf~>name)))
+	; DEBASE often passes nil fileName and viewFileId. ddMap can return nil for some custom types.
+	when(not(viewFileName)
+	  viewFileName = ddMapGetViewTypeFileName(
+	    if(argList->viewType then argList->viewType else argList->rootType)))
+	; Conventional per-view file name when map is still nil (e.g. slides -> slides.pptx).
+	when(not(viewFileName)
+	  viewFileName = strcat(viewName ".pptx"))
+	lname = if(argList->libId then argList->libId~>name else argList->libName)
 
-    if( objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
+	; With explicit file name first; then as NewDocViewGUI/DocImport (nil nil) when that misses.
+	objId = if(viewFileName then ddGetObj(lname cellName viewName viewFileName nil "r") else nil)
+	unless(objId
+	  objId = ddGetObj(lname cellName viewName nil nil "r"))
+	if(objId then
 		; Open existing file
-    	file = ddGetObjWritePath(objId)
-		; Start editor 
-		if(isFile(file) then
-			VrtImport['Softworks]->PPTX->startReader(file)
+		file = ddGetObjWritePath(objId)
+		fileReadable = if(file then isFile(file) else nil)
+		if(fileReadable then
+			let(((pptx VrtImport['Softworks]->PPTX))
+			  cond(
+			    ((eq pptx nil)
+			     warn("[Softworks PPTX] PPTX module not loaded; cannot open editor."))
+			    ((neq procedurep(pptx->startReader) nil)
+			     pptx->startReader(file))
+			    ((equal 0 0)
+			     warn("[Softworks PPTX] startReader is not a procedure; cannot open editor."))))
 		else
-			warn("Warning, couldn't open %s / %s / %s as a PPTX view", libName cellName viewName))
+			warn("Warning, couldn't open %s / %s / %s as a PPTX view" libName cellName viewName))
 	else
-		VrtImport['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName rootType)
+		ndg = Softworks->NewDocViewGUI
+		cgui = if(ndg then ndg->CombinedGUI else nil)
+		unless(cgui
+		  cgui = if(boundp('SdmCombinedGUI) then SdmCombinedGUI else nil))
+		if(procedurep(cgui) then
+			cgui(libName cellName viewName rootType)
+		else
+			warn(sprintf(nil
+			  "[Softworks PPTX] No callable CombinedGUI for new pptx view (lib=%L cell=%L view=%L). ndg=%L. If NewDocViewGUI loaded, check SdmCombinedGUI / NewDocViewGUI->CombinedGUI."
+			  libName cellName viewName ndg)))
 	)
 	t
-))
+	)))
 
 SdmPPTXDataTrigger = DataTrigger
-
-procedure(startReader(filePath)
-	"Opens a pptx file in Libre office."
-	system(strcat( "libreoffice --impress " filePath))
-)
+unless(procedurep(SdmPPTXDataTrigger)
+  warn(sprintf(nil
+    "[Softworks PPTX] FATAL: SdmPPTXDataTrigger is not a procedure after bind (value=%L); DEBASE pptx trigger will fail."
+    SdmPPTXDataTrigger)))
 
 list(nil
 	'init init
@@ -69,6 +101,10 @@ list(nil
 
 putprop(Softworks PPTX 'PPTX)
 PPTX->init()
+unless(procedurep(SdmPPTXDataTrigger)
+  warn(sprintf(nil
+    "[Softworks PPTX] FATAL: SdmPPTXDataTrigger lost procedure status after init (value=%L)."
+    SdmPPTXDataTrigger)))
 
 )
 

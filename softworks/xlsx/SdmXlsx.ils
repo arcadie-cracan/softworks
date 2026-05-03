@@ -1,10 +1,5 @@
 printf("  Loading XLSX support...")
 
-; File-scope: nested-let procs (e.g. module startReader) are not safe to call from some
-; paths; SdmXLSXStartReader is the editor launcher for the open path.
-procedure(SdmXLSXStartReader(filePath)
-	system(strcat("libreoffice --calc " filePath)))
-
 ; Set SdmXLSXDataTrigger to the procedure object here, not as XLSX->DataTrigger: on some
 ; Virtuoso builds the alist "->" form returns nil, so init sees a non-function trigger.
 
@@ -23,10 +18,13 @@ procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
 ))
 
-; uninitialize all XLSX views so they can be redefined
+; Uninitialize all XLSX views so they can be redefined
 procedure(uninit() let(((out t))
 	Softworks->uninitDeRegApp(viewSetup)
 ))
+
+procedure(startReader(filePath)
+	system(strcat("libreoffice --calc " filePath)))
 
 ; Must run in nested context so NewDocViewGUI->CombinedGUI (nested) is callable, like PPTX.
 procedure(DataTrigger(@optional argList)
@@ -34,13 +32,11 @@ procedure(DataTrigger(@optional argList)
 		warn("Softworks: SdmXLSXDataTrigger called with nil argList")
 		t
 	else
-	let((libName cellName lname file fileName extension objId viewFileName viewName viewType appName
-	     fileReadable ndg cgui)
+	let((libName cellName lname file fileReadable objId viewFileName viewName rootType ndg cgui)
 	libName = argList->libName
 	cellName = argList->cellName
-    viewName = argList->viewName
+	viewName = argList->viewName
 	rootType = argList->rootType
-	appName = argList->appName
 	; viewFileId is a dd object on argList: use ~>name, not ->name (avoids "not a function - nil").
 	viewFileName = let((vf)
 	  vf = argList->viewFileId
@@ -62,15 +58,19 @@ procedure(DataTrigger(@optional argList)
 	  objId = ddGetObj(lname cellName viewName nil nil "r"))
 	if(objId then
 		; Open existing file
-    	file = ddGetObjWritePath(objId)
-	fileReadable = if(file then isFile(file) else nil)
+		file = ddGetObjWritePath(objId)
+		fileReadable = if(file then isFile(file) else nil)
 		if(fileReadable then
-			unless(procedurep(SdmXLSXStartReader)
-			  warn("[Softworks XLSX] SdmXLSXStartReader is not a procedure; cannot open editor."))
-			when(procedurep(SdmXLSXStartReader)
-			SdmXLSXStartReader(file))
+			let(((xlsx VrtImport['Softworks]->XLSX))
+			  cond(
+			    ((eq xlsx nil)
+			     warn("[Softworks XLSX] XLSX module not loaded; cannot open editor."))
+			    ((neq procedurep(xlsx->startReader) nil)
+			     xlsx->startReader(file))
+			    ((equal 0 0)
+			     warn("[Softworks XLSX] startReader is not a procedure; cannot open editor."))))
 		else
-			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
+			warn("Warning, couldn't open %s / %s / %s as a XLSX view" libName cellName viewName))
 	else
 		ndg = Softworks->NewDocViewGUI
 		cgui = if(ndg then ndg->CombinedGUI else nil)
@@ -96,7 +96,7 @@ list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
-	'startReader SdmXLSXStartReader
+	'startReader startReader
 ))
 
 putprop(Softworks XLSX 'XLSX)
