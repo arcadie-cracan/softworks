@@ -61,7 +61,7 @@ procedure(DataTrigger(@optional argList)
 	  vf = argList->viewFileId
 	  if(not(vf) then argList->fileName
 	  else if(stringp(vf) then vf
-	  else nil))
+	  else nil)))
 	; When DEBASE omits both, use viewName + extension as the conventional master name.
 	when(not(viewFileName)
 	  viewFileName = strcat(viewName extension))
