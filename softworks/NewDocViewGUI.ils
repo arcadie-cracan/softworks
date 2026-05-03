@@ -102,6 +102,25 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 	ddUpdateLibList() ; Update library list
 	hiSetCallbackStatus(form t)
 	hiFormUnmap(form)
+	; Launch the external editor for the newly created/imported view.
+	cond(
+	  ((neq cpSuccess nil)
+	   let(((fp viewFileObj~>writePath)
+	        (ext car(reverse(parseString(FileName ".")))))
+	     cond(
+	       ((equal ext "xlsx")
+	        cond(
+	          ((neq procedurep(SdmXLSXStartReader) nil)
+	           SdmXLSXStartReader("libreoffice_xlsx" fp))))
+	       ((equal ext "pptx")
+	        let(((m VrtImport['Softworks]->PPTX))
+	          cond(
+	            ((neq procedurep(m->startReader) nil)
+	             m->startReader(fp)))))
+	       ((equal ext "pdf")
+	        system(strcat("firefox " fp)))
+	       ((equal ext "html")
+	        system(strcat("firefox " fp)))))))
 )
 )
 
