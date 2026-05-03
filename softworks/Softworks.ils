@@ -224,7 +224,7 @@ procedure(SoftworksDocPathStore(v)
   let(((SoftworksDocPathDbgVoid SoftworksDocPathDbg(sprintf(nil "DP20 SoftworksDocPathStore arg nil=%L len=%d"
       equal(nil v)
       SoftworksDocPathDbgStrlen(v)))))
-    let(((SoftworksDocPathDbgVoid setq SoftworksDocImportPathResult v))
+    let(((SoftworksDocPathDbgVoid (setq SoftworksDocImportPathResult v)))
       let(((SoftworksDocPathDbgVoid SoftworksDocPathDbg("DP21 SoftworksDocPathStore after setq")))
         nil))))
 
