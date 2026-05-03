@@ -1,37 +1,8 @@
-; Tracing: SOFTWORKS_GUI_TRACE=1, SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_DEBUG=1,
-; or SOFTWORKS_NEW_DOC_GUI_DEBUG=1 for Documentation Cell View stepping ([Softworks NDGUI] G*, V*).
-; Fine DEBASE stepping inside GUICellView / Normalize: SOFTWORKS_GUICELLVIEW_DEBASE_STEP=1 (GVstepNN warns).
-; Doc-path DP* in Softworks.ils mirrors those env vars (SoftworksDocPathTraceP).
-; DEBASE: when(or(...)) / when(member(...)) can see predicate symbol t → eval: not a function - t.
-; Return only 1 or nil so when(SoftworksNewDocGuiVerboseP() ...) never expands to when(t ...).
-procedure(SoftworksNewDocViewTraceP()
-  cond(
-    ((neq nil getShellEnvVar("SOFTWORKS_GUI_TRACE")) 1)
-    ((neq nil getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")) 1)
-    ((neq nil getShellEnvVar("SOFTWORKS_DEBUG")) 1)
-    ((equal 0 0) nil)))
-
-; Documentation Cell View dialog: extra step logs without full GUI trace.
-; SOFTWORKS_NEW_DOC_GUI_DEBUG=1 OR any SoftworksNewDocViewTraceP() env.
-procedure(SoftworksNewDocGuiVerboseP()
-  cond(
-    ((neq nil SoftworksNewDocViewTraceP()) 1)
-    ((neq nil getShellEnvVar("SOFTWORKS_NEW_DOC_GUI_DEBUG")) 1)
-    ((equal 0 0) nil)))
-
-; GVstepNN warns when verbose/trace OR SOFTWORKS_GUICELLVIEW_DEBASE_STEP is set (DEBASE-safe cond only).
-procedure(SoftworksGUICellViewStepTraceP()
-  cond(
-    ((neq nil SoftworksNewDocGuiVerboseP()) 1)
-    ((neq nil getShellEnvVar("SOFTWORKS_GUICELLVIEW_DEBASE_STEP")) 1)
-    ((equal 0 0) nil)))
-
 ; Default path helper: delegates to SoftworksDocPathFillFromEnv (Softworks.ils).
 ; DEBASE GUICellView uses SoftworksDocImportPathResult + ?defValue — no prog2(local setq).
 procedure(SoftworksNewDocViewFilePathDefault()
-  let(((SoftworksDocPathDbgVoid when(SoftworksNewDocGuiVerboseP() warn("[Softworks GUI] defValue path: SoftworksDocPathFillFromEnv -> SoftworksDocImportPathResult"))))
-    let(((SoftworksDocPathDbgVoid SoftworksDocPathFillFromEnv()))
-      SoftworksDocImportPathResult)))
+  SoftworksDocPathFillFromEnv()
+  SoftworksDocImportPathResult)
 
 ; DEBASE: blankstrp may be absent on stripped stacks → eval: not a function - nil.
 procedure(SoftworksBlankStringp(s)
@@ -42,8 +13,6 @@ procedure(SoftworksBlankStringp(s)
 ; Map lib/cell/view name or DEBASE rootType / viewType tag to xlsx|pptx|pdf|html for doc GUI defaults.
 procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	let(((tag ""))
-	  cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	    warn(sprintf(nil "[Softworks NDGUI] GVnorm enter tagRaw=%L" tagRaw))))
 	  tag = cond(
 	    ((neq stringp(tagRaw) nil) tagRaw)
 	    ((neq symbolp(tagRaw) nil) sprintf(nil "%s" tagRaw))
@@ -129,36 +98,9 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 ; Choose between import or new cell
 procedure( CombinedGUI(LibSelected CellSelected ViewSelected @optional RootTypeHint)
 let((SelectionL newForm formName)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil
-	      "[Softworks NDGUI] CombinedGUI G0 enter lib=%L cell=%L view=%L rootTypeHint=%L"
-	      LibSelected CellSelected ViewSelected RootTypeHint)))
-	  nil)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] CombinedGUI G0b calling GUICellView"))
-	  nil)
-	let(((SoftworksDocPathDbgVoid when(SoftworksGUICellViewStepTraceP() warn("[Softworks NDGUI] CombinedGUI G0c SoftworksDocPathFillFromEnv before GUICellView"))))
-	  SoftworksDocPathFillFromEnv())
+	SoftworksDocPathFillFromEnv()
 	SelectionL = GUICellView(LibSelected CellSelected ViewSelected RootTypeHint)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil
-	      "[Softworks NDGUI] CombinedGUI G1 GUICellView returned fieldsCar=%L selectionTail=%L"
-	      car(SelectionL)
-	      cdr(SelectionL))))
-	  nil)
 	formName = gensym('importGUIDocForm)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G2 gensym formName=%L" formName)))
-	  nil)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G3 hiCreateAppForm fieldsCar=%L"
-	      car(SelectionL))))
-	  nil)
 	newForm = hiCreateAppForm(
 		?name formName
 		?formTitle "Documentation Cell View"
@@ -168,42 +110,14 @@ let((SelectionL newForm formName)
 ;		?formType 'nonOptions
 		?unmapAfterCB t
 	)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G4 hiCreateAppForm -> newForm=%L" newForm)))
-	  nil)
 	putprop(formName "skyOpenSkyVerHelp()" 'hiHelpAction) 
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G5 hiInstantiateForm(%L)" newForm)))
-	  nil)
 	hiInstantiateForm(newForm)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] CombinedGUI G6 hiInstantiateForm returned"))
-	  nil)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] CombinedGUI G7 ddHiLinkFields Lib Cell View combos"))
-	  nil)
 	ddHiLinkFields(
 		newForm->LibNameField
 		newForm->CellNameField
 		newForm->ViewNameField
 	)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] CombinedGUI G8 ddHiLinkFields returned"))
-	  nil)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil "[Softworks NDGUI] CombinedGUI G9 hiDisplayForm(%L)" newForm)))
-	  nil)
 	hiDisplayForm( newForm )
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] CombinedGUI G10 hiDisplayForm returned"))
-	  nil)
 	nil
 ))
 
@@ -211,40 +125,26 @@ let((SelectionL newForm formName)
 procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
   let((SelectionL viewTag viewDocKind docKind unknownDocKind importNewDef contentsDef
 	filePathInvisible contentsInvisible fileNameDef)
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep00 enter Lib=%L Cell=%L View=%L RootHint=%L"
-	    LibSelected CellSelected ViewSelected RootTypeHint))))
 	; tconc(nil ...) is required; if SelectionL were ever resolved as global (e.g. symbol t), DEBASE hits eval: not a function - t.
 	SelectionL = nil
-	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep01 SelectionL=nil")))
 	viewTag = cond(
 	  ((neq stringp(ViewSelected) nil) ViewSelected)
 	  ((neq symbolp(ViewSelected) nil) sprintf(nil "%s" ViewSelected))
 	  ((equal 0 0) ""))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep02 viewTag=%L" viewTag))))
 	viewDocKind = SoftworksNormalizeDocKindTag(viewTag)
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep03 viewDocKind=%L" viewDocKind))))
 	; DEBASE: or(...) lowers to cond ((t second)); never use or here.
 	docKind = cond(
 	  ((neq viewDocKind nil) viewDocKind)
 	  ((equal 0 0) SoftworksNormalizeDocKindTag(RootTypeHint)))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep04 docKind=%L" docKind))))
 	; DEBASE treats cond/when clauses like (t ...) or when(t ...) as (apply t ...): never use symbol t as flag/predicate CAR.
 	unknownDocKind = nil
 	; DEBASE: unless(nil ...) expands like when(t ...) / cond (t ...) — never use unless here.
 	cond(
 	  ((eq docKind nil) unknownDocKind = 'SoftworksUnknownDocKind)
 	  ((neq SoftworksBlankStringp(docKind) nil) unknownDocKind = 'SoftworksUnknownDocKind))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep05 unknownDocKind=%L" unknownDocKind))))
 	importNewDef = "Import"
 	cond(
 	  ((eq unknownDocKind nil) importNewDef = "New"))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep06 importNewDef=%L" importNewDef))))
 	contentsDef = cond(
 	  ((neq unknownDocKind nil) "Power Point (*.pptx)")
 	  ((neq member(docKind '("xlsx")) nil) "Excel Spreadsheet (*.xlsx)")
@@ -252,18 +152,12 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((neq member(docKind '("pdf")) nil) "PDF (*.pdf)")
 	  ((neq member(docKind '("html")) nil) "HTML (*.html)")
 	  ((equal 0 0) "Power Point (*.pptx)"))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep07 contentsDef=%L" contentsDef))))
 	filePathInvisible = nil
 	cond(
 	  ((eq unknownDocKind nil) filePathInvisible = t))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep08 filePathInvisible=%L" filePathInvisible))))
 	contentsInvisible = nil
 	cond(
 	  ((neq unknownDocKind nil) contentsInvisible = t))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep09 contentsInvisible=%L" contentsInvisible))))
 	fileNameDef = cond(
 	  ((neq unknownDocKind nil) "Review.pptx")
 	  ((neq member(docKind '("xlsx")) nil)
@@ -284,20 +178,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	      ((neq member(viewTag '("html")) nil) "Review.html")
 	      ((equal 0 0) sprintf(nil "%s.html" viewTag))))
 	  ((equal 0 0) "Review.pptx"))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep10 fileNameDef=%L" fileNameDef))))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil) warn("[Softworks NDGUI] GVstep11 before V1 progn")))
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil
-	      "[Softworks GUI] GUICellView V1 enter lib=%L cell=%L view=%L rootHint=%L viewTag=%L docKind=%L unknownDocKind=%L importNewDef=%L fileNameDef=%L pathInvisible=%L typeInvisible=%L"
-	      LibSelected CellSelected ViewSelected RootTypeHint viewTag docKind unknownDocKind importNewDef fileNameDef filePathInvisible contentsInvisible)))
-	  nil)
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep12 SoftworksDocImportPathResult preset=%L (Filled in CombinedGUI)"
-	    SoftworksDocImportPathResult))))
-	cond(((neq SoftworksGUICellViewStepTraceP() nil)
-	  warn(sprintf(nil "[Softworks NDGUI] GVstep13 SoftworksDocImportPathResult=%L" SoftworksDocImportPathResult))))
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 		?name       'LibNameField
@@ -307,10 +187,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?validationType	 'allowExisting
 	    ?editable  t)
 		5:10 400:30 60))
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V2 after ddHiCreateLibraryComboField"))
-	  nil)
 	SelectionL = tconc(SelectionL list(ddHiCreateCellComboField(
 		?name      'CellNameField
 	    ?prompt    "Cell"
@@ -327,10 +203,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?validationType	 'allowAny
 	    ?editable   t)
 		5:90 400:30 60))
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V3 after view combo, before ImportNewDropdown cyclic"))
-	  nil)
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name      'ImportNewDropdown
 		?choices   '("Import" "New")
@@ -339,14 +211,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?callback   changeViewToImport
 		?keepHistory t)
 		5:130 400:30 90))
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V4 ImportNewDropdown cyclic field created"))
-	  nil)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V5 before FilePathField"))
-	  nil)
 	; Import Cell View (Default). No ?modifyCallback: DEBASE can apply the callback return as a
 	; function (errors like not a function - t or - "/path/"). Set file name in FileNameField.
 	SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
@@ -357,24 +221,14 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?invisible filePathInvisible
 		?editable  t)
 		5:170 400:30 100))
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V6 FilePathField created"))
-	  nil)
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
-	  ?prompt    "File Name"
-	  ?defValue  fileNameDef
+  ?prompt    "File Name"
+  ?defValue  fileNameDef
 		?modifyCallback CheckFileName
-	  ?editable  t
+  ?editable  t
 		?enabled   t) 
 		5:210 400:30 100))
-
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V7 FileNameField created"))
-	  nil)
-
 	; New Cell View 
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name       'ContentsOption
@@ -386,14 +240,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?enabled   t
 		?keepHistory t)
 		5:170 400:30 100))
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V8 ContentsOption cyclic created"))
-	  nil)
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn("[Softworks NDGUI] GUICellView V9 returning SelectionL -> CombinedGUI"))
-	  nil)
 	SelectionL
 ))
 
@@ -401,11 +247,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 ; Adjust GUI options for either New cell or Import cell formats
 ; DEBASE may pass symbol New or string "New"; treat both as New. HI cyclic callbacks must return nil.
 procedure( changeViewToImport( o_field g_scope g_item )
-	progn(
-	  when(SoftworksNewDocGuiVerboseP()
-	    warn(sprintf(nil "[Softworks NDGUI] changeViewToImport enter g_item=%L stringp=%L symbolp=%L"
-	      g_item stringp(g_item) symbolp(g_item))))
-	  nil)
 	cond(
 	  ((and g_scope g_scope->FilePathField g_scope->ContentsOption)
 	   let(((pickNew nil))

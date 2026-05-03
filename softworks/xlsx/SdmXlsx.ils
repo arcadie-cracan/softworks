@@ -1,19 +1,9 @@
 printf("  Loading XLSX support...")
 
-; Diagnostics: set SOFTWORKS_TRIGGER_TRACE=1, SOFTWORKS_GUI_TRACE=1, or SOFTWORKS_DEBUG=1
-; (XLSX: T0–T5; NewDocViewGUI logs [Softworks GUI] … when trace is on). Load also warns if
-; SdmXLSXDataTrigger is not a procedure.
-
 ; File-scope: nested-let procs (e.g. module startReader) are not safe to call from some
 ; paths; SdmXLSXStartReader is the editor launcher for the open path.
 procedure(SdmXLSXStartReader(app filePath)
 	system(strcat("libreoffice --calc " filePath)))
-
-procedure(SdmXLSXLogTriggerP()
-	or(
-		getShellEnvVar("SOFTWORKS_TRIGGER_TRACE")
-		getShellEnvVar("SOFTWORKS_GUI_TRACE")
-		getShellEnvVar("SOFTWORKS_DEBUG")))
 
 ; Set SdmXLSXDataTrigger to the procedure object here, not as XLSX->DataTrigger: on some
 ; Virtuoso builds the alist "->" form returns nil, so init sees a non-function trigger.
@@ -46,8 +36,6 @@ procedure(DataTrigger(@optional argList)
 	else
 	let((libName cellName lname file fileName extension objId viewFileName viewName viewType appName
 	     fileReadable ndg cgui)
-	when(SdmXLSXLogTriggerP()
-	  warn(sprintf(nil "[Softworks XLSX] DataTrigger T0: argList=%L" argList)))
 	libName = argList->libName
 	cellName = argList->cellName
     viewName = argList->viewName
@@ -68,33 +56,15 @@ procedure(DataTrigger(@optional argList)
 	  viewFileName = strcat(viewName ".xlsx"))
 	lname = if(argList->libId then argList->libId~>name else argList->libName)
 
-	when(SdmXLSXLogTriggerP()
-	  warn(sprintf(nil
-	    "[Softworks XLSX] DataTrigger T1: lib=%L cell=%L view=%L viewFileName=%L app=%L rootType=%L"
-	    libName cellName viewName viewFileName appName rootType)))
-	when(SdmXLSXLogTriggerP()
-	  warn(sprintf(nil
-	    "[Softworks XLSX] DataTrigger T1b: lname (for ddGetObj)=%L resolved viewFileName=%L"
-	    lname viewFileName)))
-
 	; With explicit file name first; then as NewDocViewGUI/DocImport (nil nil) when that misses.
 	objId = if(viewFileName then ddGetObj(lname cellName viewName viewFileName nil "r") else nil)
 	unless(objId
 	  objId = ddGetObj(lname cellName viewName nil nil "r"))
-	when(SdmXLSXLogTriggerP()
-	  warn(sprintf(nil "[Softworks XLSX] DataTrigger T2: ddGetObj -> objId=%L" objId)))
 	if(objId then
 		; Open existing file
     	file = ddGetObjWritePath(objId)
 	fileReadable = if(file then isFile(file) else nil)
-	when(SdmXLSXLogTriggerP()
-	  warn(sprintf(nil
-	    "[Softworks XLSX] DataTrigger T3 OPEN: file=%L fileReadable=%L" file fileReadable)))
 		if(fileReadable then
-			when(SdmXLSXLogTriggerP()
-			  warn(sprintf(nil
-			    "[Softworks XLSX] DataTrigger T4: calling SdmXLSXStartReader procedurep=%L"
-			    procedurep(SdmXLSXStartReader))))
 			unless(procedurep(SdmXLSXStartReader)
 			  warn("[Softworks XLSX] SdmXLSXStartReader is not a procedure; cannot open editor."))
 			when(procedurep(SdmXLSXStartReader)
@@ -102,33 +72,12 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
-		when(SdmXLSXLogTriggerP()
-		  warn(sprintf(nil
-		    "[Softworks XLSX] DataTrigger T3 NEW: need CombinedGUI lib=%L cell=%L view=%L"
-		    libName cellName viewName)))
 		ndg = Softworks->NewDocViewGUI
 		cgui = if(ndg then ndg->CombinedGUI else nil)
 		unless(cgui
 		  cgui = if(boundp('SdmCombinedGUI) then SdmCombinedGUI else nil))
-		when(SdmXLSXLogTriggerP()
-		  warn(sprintf(nil
-		    "[Softworks XLSX] DataTrigger T4: ndg=%L cgui procedurep=%L SdmCombinedGUI (boundp/procedurep)=%L/%L"
-		    ndg procedurep(cgui) boundp('SdmCombinedGUI) if(boundp('SdmCombinedGUI) then procedurep(SdmCombinedGUI) else "unbound"))))
-		when(SdmXLSXLogTriggerP()
-		  let((nd2 cg2)
-		    nd2 = VrtImport['Softworks]->NewDocViewGUI
-		    cg2 = if(nd2 then nd2->CombinedGUI else nil)
-		    warn(sprintf(nil
-		      "[Softworks XLSX] DataTrigger T4b: Import->NewDocViewGUI=%L ->CombinedGUI procedurep=%L"
-		      nd2 procedurep(cg2)))))
 		if(procedurep(cgui) then
-			when(SdmXLSXLogTriggerP()
-			  warn(sprintf(nil
-			    "[Softworks XLSX] DataTrigger T5: calling CombinedGUI (cgui) with lib cell view=%L %L %L"
-			    libName cellName viewName)))
 			cgui(libName cellName viewName rootType)
-			when(SdmXLSXLogTriggerP()
-			  warn("[Softworks XLSX] DataTrigger T5b: CombinedGUI (cgui) returned ok"))
 		else
 			warn(sprintf(nil
 			  "[Softworks XLSX] No callable CombinedGUI for new xlsx view (lib=%L cell=%L view=%L). ndg=%L. If NewDocViewGUI loaded, check SdmCombinedGUI / NewDocViewGUI->CombinedGUI."
@@ -156,8 +105,6 @@ unless(procedurep(SdmXLSXDataTrigger)
   warn(sprintf(nil
     "[Softworks XLSX] FATAL: SdmXLSXDataTrigger lost procedure status after init (value=%L)."
     SdmXLSXDataTrigger)))
-when(SdmXLSXLogTriggerP()
-  printf("  [Softworks XLSX] load: SdmXLSXDataTrigger procedurep=%L\n" procedurep(SdmXLSXDataTrigger)))
 
 )
 
