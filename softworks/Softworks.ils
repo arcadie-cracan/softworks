@@ -5,6 +5,9 @@ procedure(SoftworksInstallDirFromPiport()
     strcat("/" buildString(reverse(cdr(reverse(parseString(fp "/")))) "/"))
 ))
 
+; Captured at load time while piport still points to this file.
+SoftworksInstallDir = SoftworksInstallDirFromPiport()
+
 let((Softworks
   (module_description "Software and documentation view types in the Cadence Virtuoso IC design environment"))
 
@@ -79,23 +82,18 @@ procedure(softworksEffectiveProjectRoot()
 )
 
 ; Parent of pptx/, xlsx/, pdf/, html/ blank-document templates.
-; Returns SOFTWORKS_TEMPLATES_DIR when set and non-empty, else nil.
+; SOFTWORKS_TEMPLATES_DIR overrides; falls back to the built-in package templates/
+; directory so that a valid (non-empty) document is always created.
 procedure(softworksTemplatesRoot()
-  "Returns SOFTWORKS_TEMPLATES_DIR string or nil when the variable is unset/empty."
+  "Returns the template root dir: SOFTWORKS_TEMPLATES_DIR if set, else built-in package templates/."
   let(((td getShellEnvVar("SOFTWORKS_TEMPLATES_DIR")))
     cond(
-      ((neq stringp(td) nil)
-       cond(
-         ((greaterp strlen(td) 0) td)
-         ((equal 0 0) nil)))
-      ((equal 0 0) nil))))
+      ((and (neq stringp(td) nil) (greaterp strlen(td) 0)) td)
+      ((equal 0 0) strcat(SoftworksInstallDir "templates")))))
 
 procedure(softworksBlankDocTemplatePath(relativeTemplatePath "t")
-  "Full path to a template file, or nil when SOFTWORKS_TEMPLATES_DIR is unset."
-  let(((base softworksTemplatesRoot()))
-    cond(
-      ((neq base nil) strcat(base "/" relativeTemplatePath))
-      ((equal 0 0) nil))))
+  "Full path to a template file under the active template root."
+  strcat(softworksTemplatesRoot() "/" relativeTemplatePath))
 
 ; Default directory for documentation import GUIs (PPTX/PDF/etc. file picker start path).
 ; SOFTWORKS_DOC_DIR overrides; otherwise <effective project root>/doc/ (warn if both override env vars unset).

@@ -85,11 +85,7 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 				templatePath = softworksBlankDocTemplatePath("html/htmlTemplate.html"))
 		  )
 		  cond(
-			; SOFTWORKS_TEMPLATES_DIR not set → create blank file
-			((eq templatePath nil)
-			 cpSuccess = shell(sprintf(nil "touch %s" EscapeSpecialCharacters(writePath)))
-			 printf("Created %s %s %s cell view (blank; set SOFTWORKS_TEMPLATES_DIR for templates)\n" LibName CellName ViewName))
-			; Template file missing → warn and create blank file
+			; Template file missing (custom SOFTWORKS_TEMPLATES_DIR set but file absent) → warn + blank
 			((neq isReadable(templatePath) t)
 			 warn("Softworks: template %s not found; creating blank document view." templatePath)
 			 cpSuccess = shell(sprintf(nil "touch %s" EscapeSpecialCharacters(writePath)))
