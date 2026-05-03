@@ -67,7 +67,12 @@ VsCode = Module->New('VsCode
 Module->AddFunction(Softworks 'VsCode VsCode)
 
 ; Must be inside the let where VsCode is in scope.
+SdmVsCodeOpen = VsCode->open
 SdmVsCodeStartLmgrCB = VsCode->StartLmgrCB
+unless(procedurep(SdmVsCodeOpen)
+  warn(sprintf(nil
+    "[Softworks VsCode] FATAL: SdmVsCodeOpen is not a procedure after bind (value=%L); Python/notebook editor will not open."
+    SdmVsCodeOpen)))
 unless(procedurep(SdmVsCodeStartLmgrCB)
   warn(sprintf(nil
     "[Softworks VsCode] FATAL: SdmVsCodeStartLmgrCB is not a procedure after bind (value=%L); LMgr menu will not work."

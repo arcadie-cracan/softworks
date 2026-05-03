@@ -116,14 +116,10 @@ unless(procedurep(SdmPyDataTrigger)
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-      let(((vs VrtImport['VsCode]))
-        cond(
-          ((eq vs nil)
-           warn("[Softworks Python] VsCode module not loaded; cannot open editor."))
-          ((neq procedurep(vs->open) nil)
-           vs->open(filePath))
-          ((equal 0 0)
-           warn("[Softworks Python] VsCode->open is not a procedure; cannot open editor.")))))
+      if(procedurep(SdmVsCodeOpen) then
+        SdmVsCodeOpen(filePath)
+      else
+        warn("[Softworks Python] SdmVsCodeOpen is not bound; cannot open editor.")))
     (("gedit_module" "gedit_yaml" "gedit_markdown")
       let(((sg Softworks->startGedit))
         cond(
