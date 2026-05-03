@@ -209,7 +209,7 @@ let((SelectionL newForm formName)
 		5:130 400:30 100))
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
-		?prompt    "File Name"
+		?prompt    "Import as"
 		?defValue  ""
 		?toolTip   "Leave blank to use source file name"
 		?modifyCallback CheckFileName
