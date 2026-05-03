@@ -14,7 +14,7 @@ let((dir_path src_path packages)
 		"pptx/SdmPptx.ils"
 		"xlsx/SdmXlsx.ils"
 		"docx/SdmDocx.ils"
-		"view_types/SdmHtml.ils"
+		"html/SdmHtml.ils"
 		;"code_workspace.il" ; Create Code Workspace
 	)
 	VrtImport['Module]->LoadList(packages
