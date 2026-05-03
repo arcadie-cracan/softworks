@@ -97,8 +97,11 @@ procedure(DataTrigger(@optional argList)
 		    ((neq procedurep(py->startReader) nil)
 		     if(isFile(file_workspace_link_path) then
 		       py->startReader(appName file_workspace_link_path)
-		     else when(isFile(filePath)
-		       py->startReader(appName filePath))))
+		     else if(isFile(filePath) then
+		       py->startReader(appName filePath)
+		     else
+		       warn("[Softworks Python] Cannot find view file for %s / %s / %s"
+		            libName cellName viewName))))
 		    ((equal 0 0)
 		     warn("[Softworks Python] startReader is not a procedure; cannot open editor."))))
 	else
