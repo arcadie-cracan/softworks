@@ -15,7 +15,7 @@ procedure(open(@optional (filePath "") "t")
     ; --- resolve workspace path ---
     wp = getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
     unless(wp
-      wp = strcat(Softworks->softworksEffectiveProjectRoot() "/softworks_workspace")
+      wp = strcat(softworksEffectiveProjectRoot() "/softworks_workspace")
       warn(sprintf(nil
         "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for VS Code." wp)))
     unless(strlen(wp) >= 16 && zerop(strcmp(substring(wp -16) ".code-workspace"))
@@ -68,6 +68,10 @@ Module->AddFunction(Softworks 'VsCode VsCode)
 )
 
 ; Library Manager Menu Callbacks
-SdmVsCodeStartLmgrCB = VrtImport['Softworks]->VsCode->StartLmgrCB
+SdmVsCodeStartLmgrCB = VsCode->StartLmgrCB
+unless(procedurep(SdmVsCodeStartLmgrCB)
+  warn(sprintf(nil
+    "[Softworks VsCode] FATAL: SdmVsCodeStartLmgrCB is not a procedure after bind (value=%L); LMgr menu will not work."
+    SdmVsCodeStartLmgrCB)))
 
 printf("done\n")

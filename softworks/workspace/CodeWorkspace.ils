@@ -8,7 +8,7 @@ procedure(init()
     ; create or refresh the code workspace unless already materialized
     target = getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
     unless(target
-      target = strcat(Softworks->softworksEffectiveProjectRoot() "/softworks_workspace"))
+      target = strcat(softworksEffectiveProjectRoot() "/softworks_workspace"))
     exe = "python -m softworks.workspace.code_workspace"
     cond(
       ; target is a .code-workspace file
