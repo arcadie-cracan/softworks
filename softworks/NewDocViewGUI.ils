@@ -84,20 +84,19 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 			(("HTML (*.html)")
 				templatePath = softworksBlankDocTemplatePath("html/htmlTemplate.html"))
 		  )
-		  cond(
-			; Template file missing (custom SOFTWORKS_TEMPLATES_DIR set but file absent) → warn + blank
-			((neq isReadable(templatePath) t)
-			 warn("Softworks: template %s not found; creating blank document view." templatePath)
-			 cpSuccess = shell(sprintf(nil "touch %s" EscapeSpecialCharacters(writePath)))
-			 printf("Created %s %s %s cell view (blank)\n" LibName CellName ViewName))
-			; Template found → copy it
-			((equal 0 0)
-			 cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(templatePath) " " EscapeSpecialCharacters(writePath)))
-			 if(not(cpSuccess) then
-				error("The file copy failed.  Could not copy template %s to %s" templatePath writePath)
-			 else
-				printf("Created %s %s %s cell view from template %s\n" LibName CellName ViewName templatePath)
-			 )))
+		  let(((sourcePath templatePath))
+		    ; Custom SOFTWORKS_TEMPLATES_DIR set but file absent → warn and fall back to built-in
+		    cond(
+			  ((neq isReadable(templatePath) t)
+			   warn("Softworks: template %s not found; falling back to built-in template." templatePath)
+			   sourcePath = strcat(SoftworksInstallDir "templates/" car(reverse(parseString(templatePath "/"))))))
+		    cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(sourcePath) " " EscapeSpecialCharacters(writePath)))
+		    if(not(cpSuccess) then
+			  error("The file copy failed.  Could not copy template %s to %s" sourcePath writePath)
+		    else
+			  printf("Created %s %s %s cell view from template %s\n" LibName CellName ViewName sourcePath)
+		    )
+		  )
 		)
 	) ; if statement for import / new cell view 
 	ddUpdateLibList() ; Update library list
