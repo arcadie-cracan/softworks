@@ -43,7 +43,13 @@ procedure(open(@optional (filePath "") "t")
     cmd = strcat(cmd "; exit")
     printf("VS Code: %s\n" cmd)
     vscProc = ipcBeginProcess(cmd "" nil nil)
-    unless(when(VsCodeProcess ipcIsActiveProcess(VsCodeProcess))
+    ; Only track the process handle if ipcIsActiveProcess is available in this build.
+    ; Calling ipcIsActiveProcess on an old handle crashes with "not a function - nil"
+    ; on Virtuoso versions where the function is not defined.
+    if(getd('ipcIsActiveProcess) then
+      unless(VsCodeProcess && ipcIsActiveProcess(VsCodeProcess)
+        VsCodeProcess = vscProc)
+    else
       VsCodeProcess = vscProc)
   )
 )
