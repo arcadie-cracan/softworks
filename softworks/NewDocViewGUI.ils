@@ -111,14 +111,17 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 	       ((equal ext "xlsx")
 	        cond(
 	          ((neq procedurep(SdmXLSXStartReader) nil)
-	           SdmXLSXStartReader("libreoffice_xlsx" fp))))
+	           SdmXLSXStartReader(fp))))
 	       ((equal ext "pptx")
 	        let(((m VrtImport['Softworks]->PPTX))
 	          cond(
 	            ((neq procedurep(m->startReader) nil)
 	             m->startReader(fp)))))
 	       ((equal ext "pdf")
-	        system(strcat("firefox " fp)))
+	        let(((m VrtImport['Softworks]->PDF))
+	          cond(
+	            ((neq procedurep(m->startReader) nil)
+	             m->startReader(fp)))))
 	       ((equal ext "html")
 	        system(strcat("firefox " fp)))))))
 )

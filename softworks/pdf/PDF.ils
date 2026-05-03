@@ -40,7 +40,7 @@ procedure(DataTrigger(@optional argList )
     	file = ddGetObjWritePath(objId)
 		; Start editor 
 		if(isFile(file) then
-			VrtImport['Softworks]->PDF->startReader(appName file)
+			VrtImport['Softworks]->PDF->startReader(file)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PDF view", libName cellName viewName))
 	else
@@ -50,7 +50,7 @@ procedure(DataTrigger(@optional argList )
 	t
 ))
 
-procedure(startReader(app filePath)
+procedure(startReader(filePath)
 	system(strcat( "firefox " filePath))
 )
 

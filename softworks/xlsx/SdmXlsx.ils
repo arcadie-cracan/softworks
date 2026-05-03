@@ -2,7 +2,7 @@ printf("  Loading XLSX support...")
 
 ; File-scope: nested-let procs (e.g. module startReader) are not safe to call from some
 ; paths; SdmXLSXStartReader is the editor launcher for the open path.
-procedure(SdmXLSXStartReader(app filePath)
+procedure(SdmXLSXStartReader(filePath)
 	system(strcat("libreoffice --calc " filePath)))
 
 ; Set SdmXLSXDataTrigger to the procedure object here, not as XLSX->DataTrigger: on some
@@ -68,7 +68,7 @@ procedure(DataTrigger(@optional argList)
 			unless(procedurep(SdmXLSXStartReader)
 			  warn("[Softworks XLSX] SdmXLSXStartReader is not a procedure; cannot open editor."))
 			when(procedurep(SdmXLSXStartReader)
-			  SdmXLSXStartReader(appName file))
+			SdmXLSXStartReader(file))
 		else
 			warn("Warning, couldn't open %s / %s / %s as a XLSX view", libName cellName viewName))
 	else
