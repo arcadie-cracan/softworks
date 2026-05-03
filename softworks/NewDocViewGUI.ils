@@ -313,17 +313,13 @@ procedure( UpdateFileContents(_field scope item)
 	progn(
 	  case(item 
 		(("Power Point (*.pptx)") 
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pptx")
-		 scope->ViewNameField->value = "pptx")
+		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pptx"))
 		(("Excel Spreadsheet (*.xlsx)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".xlsx")
-		 scope->ViewNameField->value = "xlsx")
+		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".xlsx"))
 		(("PDF (*.pdf)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pdf")
-		 scope->ViewNameField->value = "pdf")
+		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pdf"))
 		(("HTML (*.html)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html")
-		 scope->ViewNameField->value = "html")
+		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html"))
 	  ) ; case
 	  nil))
 
