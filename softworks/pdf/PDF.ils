@@ -4,7 +4,7 @@ printf("  Loading PDF support...")
 ; SdmPdfDataTrigger: bind to DataTrigger here, not as PDF->DataTrigger (can be nil on some builds).
 
 let((PDF
-	(Softworks Import['Softworks]))
+	(Softworks VrtImport['Softworks]))
 	
 PDF = let((
 	(viewSetup '(
@@ -40,12 +40,12 @@ procedure(DataTrigger(@optional argList )
     	file = ddGetObjWritePath(objId)
 		; Start editor 
 		if(isFile(file) then
-			Import['Softworks]->PDF->startReader(appName file)
+			VrtImport['Softworks]->PDF->startReader(appName file)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PDF view", libName cellName viewName))
 	else
 		; Create a new file by copying a template
-		Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName rootType)
+		VrtImport['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName rootType)
 	)
 	t
 ))

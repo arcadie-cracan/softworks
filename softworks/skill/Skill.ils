@@ -3,7 +3,7 @@ printf("  Loading Skill support...")
 ; SdmSkill*DataTrigger: use DataTrigger in scope, not Skill->DataTrigger (can be nil on some builds).
 
 let((Skill
-	  (Softworks Import['Softworks]))
+	  (Softworks VrtImport['Softworks]))
 
 Skill = let((
 	(viewSetup '(
@@ -49,7 +49,7 @@ procedure(DataTrigger(@optional argList)
 
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
 			file = ddGetObjWritePath(objId)
-      softworks_root_path = Import['Package]->GetPackageMetadata(Import['Softworks])['project_root_path]
+      softworks_root_path = VrtImport['Package]->GetPackageMetadata(VrtImport['Softworks])['project_root_path]
 			system(sprintf(nil "cp %s/skill/%s %s" softworks_root_path templateName file))
 			ddReleaseObj(objId) 
 			startIDE(file)
@@ -76,12 +76,12 @@ list(nil
 	'init init
 	'uninit uninit
 ))
-putprop(Import['Softworks] Skill 'Skill)
+putprop(VrtImport['Softworks] Skill 'Skill)
 Skill->init()
 
 )
 
 ;Global functions
-SdmStartSkillIde = Import['Softworks]->Skill->startIDE
+SdmStartSkillIde = VrtImport['Softworks]->Skill->startIDE
 
 printf("done\n")

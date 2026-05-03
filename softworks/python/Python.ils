@@ -3,7 +3,7 @@ printf("  Loading Python support...")
 ; SdmPyDataTrigger: assign from procedure DataTrigger; Python->DataTrigger can be nil on some builds.
 
 let((Python
-	   (Softworks Import['Softworks]))
+	   (Softworks VrtImport['Softworks]))
 
 Python = let((
 	(viewSetup '(
@@ -59,9 +59,9 @@ procedure(DataTrigger(@optional argList)
 		file_workspace_link_path = strcat(userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
     filePath = ddGetObjWritePath(objId)
 		if(isFile(file_workspace_link_path) then
-		  Import['Softworks]->Python->startReader(appName file_workspace_link_path)
+		  VrtImport['Softworks]->Python->startReader(appName file_workspace_link_path)
 		else if(isFile(filePath) then
-			Import['Softworks]->Python->startReader(appName filePath)
+			VrtImport['Softworks]->Python->startReader(appName filePath)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a Python view", 
 			     libName cellName viewName)))
@@ -81,9 +81,9 @@ procedure(DataTrigger(@optional argList)
 		
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
 		  filePath = ddGetObjWritePath(objId)
-      softworks_root_path = Import['Package]->GetPackageMetadata(Import['Softworks])['project_root_path]
+      softworks_root_path = VrtImport['Package]->GetPackageMetadata(VrtImport['Softworks])['project_root_path]
 			system(sprintf(nil "cp %s/python/%s %s" softworks_root_path templateName filePath))
-			Import['Softworks]->Python->startReader(appName filePath)
+			VrtImport['Softworks]->Python->startReader(appName filePath)
 		else
 			warn("Could not create the cellview file %s / %s / %s / %s" 
 			     libName cellName viewName fileName))
@@ -96,7 +96,7 @@ SdmPyDataTrigger = DataTrigger
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-      Import['VsCode]->open(filePath))
+      VrtImport['VsCode]->open(filePath))
     (("gedit_module" "gedit_yaml" "gedit_markdown")
       Softworks->startGedit(filePath))
   )

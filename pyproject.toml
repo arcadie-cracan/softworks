@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "softworks"
 dependencies = [
-   "virtue-skill >= 0.3, < 1",
+   "virtue-skill >= 0.8.0, < 1",
 ]
 authors = [
    {name="Curtis Mayberry", email="Curtisma3@gmail.com"},

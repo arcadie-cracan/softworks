@@ -490,8 +490,8 @@ list(nil
 	'CombinedGUI CombinedGUI
 ))
 
-putprop(Import['Softworks] NewDocViewGUI 'NewDocViewGUI)
+putprop(VrtImport['Softworks] NewDocViewGUI 'NewDocViewGUI)
 )
 ; Must be *outside* the package let: assigning inside the let can leave SdmCombinedGUI
 ; scoped to the let, so SdmXLSX and boundp('SdmCombinedGUI) do not see it after load.
-SdmCombinedGUI = Import['Softworks]->NewDocViewGUI->CombinedGUI
+SdmCombinedGUI = VrtImport['Softworks]->NewDocViewGUI->CombinedGUI

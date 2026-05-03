@@ -1,5 +1,10 @@
 printf("  Loading Softworks core...")
 
+procedure(SoftworksInstallDirFromPiport()
+  let(((fp (simplifyFilename(get_filename(piport)))))
+    strcat("/" buildString(reverse(cdr(reverse(parseString(fp "/")))) "/"))
+))
+
 let((Softworks
   (module_description "Software and documentation view types in the Cadence Virtuoso IC design environment"))
 
@@ -137,7 +142,7 @@ procedure(softworksDebugWarn(msg)
       when(greaterp(strlen(v) 0)
         warn(strcat("Softworks DEBUG: " msg))))))
 
-; Alist/Import *->* accessors can be nil on some builds; NewDocViewGUI and others need these
+; Alist/VrtImport *->* accessors can be nil on some builds; NewDocViewGUI and others need these
 ; globals to be real procedures. Value-cell assignment is not enough in SKILL++: calls like
 ; softworksProjectDocDir() use the function obarray; use putd to register the funobj.
 SdmIdleTrigger = IdleTrigger
@@ -177,13 +182,13 @@ list(nil
 	'softworksDebugWarn softworksDebugWarn
 ))
 
-Softworks = Import['Module]->New('Softworks 
+Softworks = VrtImport['Package]->New('Softworks
               ?module Softworks
-              ?package Softworks
-              ?description module_description)
+              ?description module_description
+              ?project_init_dir_path (SoftworksInstallDirFromPiport()))
 )
 ; SdmIdleTrigger and softworks* globals are set on the alist before list() above; do not
-; rebind from Import['Softworks]->* here (can be nil and break GUICellView / defValue).
+; rebind from VrtImport['Softworks]->* here (can be nil and break GUICellView / defValue).
 
 ; Safe documentation import default directory for contexts where calling
 ; softworksProjectDocDir() fails ("not a function - nil" with HI ?defValue / SKILL++).

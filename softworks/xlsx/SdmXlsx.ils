@@ -20,7 +20,7 @@ procedure(SdmXLSXLogTriggerP()
 
 let((XLSX
 	(module_description "Adds a Excel (*.xlsx) view type to Virtuoso")
-	(Softworks Import['Softworks]))
+	(Softworks VrtImport['Softworks]))
 	
 XLSX = let((
 	(viewSetup '(
@@ -116,7 +116,7 @@ procedure(DataTrigger(@optional argList)
 		    ndg procedurep(cgui) boundp('SdmCombinedGUI) if(boundp('SdmCombinedGUI) then procedurep(SdmCombinedGUI) else "unbound"))))
 		when(SdmXLSXLogTriggerP()
 		  let((nd2 cg2)
-		    nd2 = Import['Softworks]->NewDocViewGUI
+		    nd2 = VrtImport['Softworks]->NewDocViewGUI
 		    cg2 = if(nd2 then nd2->CombinedGUI else nil)
 		    warn(sprintf(nil
 		      "[Softworks XLSX] DataTrigger T4b: Import->NewDocViewGUI=%L ->CombinedGUI procedurep=%L"

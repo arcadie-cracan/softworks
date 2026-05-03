@@ -5,7 +5,7 @@ printf("  Loading PPTX support...")
 
 let((PPTX
 	   (module_description "Adds a PowerPoint (*.pptx) view type to Virtuoso")
-	   (Softworks Import['Softworks]))
+	   (Softworks VrtImport['Softworks]))
 
 PPTX = let((
 	(viewSetup '(
@@ -44,11 +44,11 @@ procedure(DataTrigger(@optional argList)
     	file = ddGetObjWritePath(objId)
 		; Start editor 
 		if(isFile(file) then
-			Import['Softworks]->PPTX->startReader(file)
+			VrtImport['Softworks]->PPTX->startReader(file)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PPTX view", libName cellName viewName))
 	else
-		Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName rootType)
+		VrtImport['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName rootType)
 	)
 	t
 ))

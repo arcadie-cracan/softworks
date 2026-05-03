@@ -1,7 +1,7 @@
 let((CodeWorkspace)
 
-CodeWorkspace = let(((Path Import['Path])
-	(Softworks Import['Softworks]))
+CodeWorkspace = let(((Path VrtImport['Path])
+	(Softworks VrtImport['Softworks]))
 
 procedure(init()
   let((target exe f port line rootReady)

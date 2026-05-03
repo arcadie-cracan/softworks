@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Changed
 
-- SKILL uses Virtue’s global `Import` table again so Softworks matches **virtue-skill** from PyPI (0.4.x), which defines `Import` but not `VrtImport` (the latter exists on Virtue GitHub `master` only).
+- Target **virtue-skill ≥ 0.8.0** (Virtue uses **`VrtImport`** instead of **`Import`**). SKILL sources use **`VrtImport['…]`** throughout.
+- Register Softworks with **`Package->New`** (`?project_init_dir_path` from the loaded **`Softworks.ils`** path) so **`GetPackageMetadata`** exposes **`project_root_path`** under Virtue’s package model.
+- **`Module->New`** submodule/editor hooks use **`?parent`** (Virtue renamed **`?package`**).
 
 ## [0.4.0] - 2023-02-10
 

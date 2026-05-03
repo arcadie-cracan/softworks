@@ -1,19 +1,19 @@
 let((EditorModule
 	(module_description "Editor modules are modules with a 'name property and an 'open function. They also include a default DataTrigger.")
-	(Project Import['IDS]->Project)
-	(Path Import['Path])
-	(Module Import['Module])
-	(Str Import['Str])
-	(Softworks Import['Softworks])
+	(Project VrtImport['IDS]->Project)
+	(Path VrtImport['Path])
+	(Module VrtImport['Module])
+	(Str VrtImport['Str])
+	(Softworks VrtImport['Softworks])
 	)
 
 EditorModule =let((EditorModuleState )
 
-procedure(New(module_symbol @key module package (description ""))
+procedure(New(module_symbol @key module parent (description ""))
 	"Registers a new editor module and adds a DataTrigger function to it."
 	module = Module->New(module_symbol
 		?module module
-		?package package
+		?parent parent
 		?description description)
 
 	Module->AddFunction(module 'DataTrigger
@@ -40,7 +40,7 @@ procedure(DataTrigger(module @optional argList)
 				warn("Softworks: could not open %s/%s/%s as an editor view."
 					libName cellName viewName))
 		else
-			Import['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
+			VrtImport['Softworks]->NewDocViewGUI->CombinedGUI(libName cellName viewName)
 		)
 		t
 	)
@@ -53,7 +53,7 @@ list(nil
 
 EditorModule = Module->New('EditorModule
 	?module EditorModule
-	?package Softworks
+	?parent Softworks
 	?description module_description)
 Module->AddFunction(Softworks 'EditorModule EditorModule)
 )
