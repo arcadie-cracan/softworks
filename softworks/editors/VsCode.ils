@@ -65,13 +65,13 @@ VsCode = Module->New('VsCode
   ?parent Softworks
   ?description module_description)
 Module->AddFunction(Softworks 'VsCode VsCode)
-)
 
-; Library Manager Menu Callbacks
+; Must be inside the let where VsCode is in scope.
 SdmVsCodeStartLmgrCB = VsCode->StartLmgrCB
 unless(procedurep(SdmVsCodeStartLmgrCB)
   warn(sprintf(nil
     "[Softworks VsCode] FATAL: SdmVsCodeStartLmgrCB is not a procedure after bind (value=%L); LMgr menu will not work."
     SdmVsCodeStartLmgrCB)))
+)
 
 printf("done\n")
