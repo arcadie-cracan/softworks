@@ -94,7 +94,7 @@ procedure(softworksTemplatesRoot()
           warn("Softworks: SOFTWORKS_TEMPLATES_DIR is unset and SOFTWORKS_ROOT is unset; blank doc template copy will fail.")
           nil)))))
 
-procedure(softworksBlankDocTemplatePath(relativeTemplatePath "s")
+procedure(softworksBlankDocTemplatePath(relativeTemplatePath "t")
   "Full path to a file under the template root, e.g. \"xlsx/xlsxTemplate.xlsx\"."
   let(((base nil))
     progn(
