@@ -295,7 +295,7 @@ procedure(SoftworksDocPathFillFromEnvBranch(hitDoc)
 	  nil))
       (t
 	let(((SoftworksDocPathDbgVoid SoftworksDocPathDbg("DP05 branch pwd/doc fallback")))
-	  let(((SoftworksDocPathDbgVoid SoftworksDocPathApplyPwdDocWarn())))
+	  let(((SoftworksDocPathDbgVoid SoftworksDocPathApplyPwdDocWarn())) nil)
 	    nil)))))
     let(((SoftworksDocPathDbgVoid SoftworksDocPathDbg("DP09 SoftworksDocPathFillFromEnv exit")))
       nil)))
