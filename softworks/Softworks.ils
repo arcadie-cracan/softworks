@@ -185,7 +185,8 @@ list(nil
 Softworks = VrtImport['Package]->New('Softworks
               ?module Softworks
               ?description module_description
-              ?project_init_dir_path (SoftworksInstallDirFromPiport()))
+              ; DEBASE: never wrap kw value as (SoftworksInstallDirFromPiport()) — outer () applies return value as functor.
+              ?project_init_dir_path SoftworksInstallDirFromPiport())
 )
 ; SdmIdleTrigger and softworks* globals are set on the alist before list() above; do not
 ; rebind from VrtImport['Softworks]->* here (can be nil and break GUICellView / defValue).
