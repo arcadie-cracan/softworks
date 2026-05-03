@@ -88,7 +88,7 @@ procedure(DataTrigger(@optional argList)
 			("rst"      ".rst")
 			(t          ".py"))
 		templateName = strcat(rootType "Template" extension)
-		fileName = strcat(cellName extension)
+		fileName = strcat(viewName extension)
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
 		  filePath = ddGetObjWritePath(objId)
 		  system(sprintf(nil "cp %s/templates/%s %s" SoftworksInstallDir templateName filePath))
