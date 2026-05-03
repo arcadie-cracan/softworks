@@ -70,11 +70,12 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 		) ;when
 	else
 		viewFileObj=ddGetObj(LibName CellName ViewName FileName nil "w")
+		if(viewFileObj == nil then
+			error("Cannot create cell view %s %s %s with file name %s" LibName CellName ViewName FileName)
+		)
 		cpSuccess = fileSourceDescription = sprintf(nil "New cell created from %s" form->FilePathField->value)
 		case(form->ContentsOption->value 
 			(("Power Point (*.pptx)") 
-				;shell(strcat("cp -f " getShellEnvVar("SkyVerTemplatePath") "DesignTemplate.pptx " viewFileObj~>writePath))) ; Copy blank skyworks template presentation 
-				; system(sprintf(nil "cp $SOFTWORKS_ROOT/src/skill/%s %s" templateName file))
 				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("pptx/pptxTemplate.pptx")) " " viewFileObj~>writePath)))
 			(("Excel Spreadsheet (*.xlsx)")
 				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("xlsx/xlsxTemplate.xlsx")) " " viewFileObj~>writePath)))
@@ -84,7 +85,7 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("html/htmlTemplate.html")) " " viewFileObj~>writePath)))
 		)
 		if(not(cpSuccess) then
-			error("The file copy failed.  Could not copy from %s to %s" EscapeSpecialCharacters(form->FilePathField->value) viewFileObj~>writePath)
+			error("The file copy failed.  Could not copy template to %s" viewFileObj~>writePath)
 		else
 			printf("Created %s %s %s cell view %s" LibName CellName ViewName fileSourceDescription)
 		)
@@ -112,13 +113,12 @@ let((SelectionL newForm formName)
 	)
 	putprop(formName "skyOpenSkyVerHelp()" 'hiHelpAction) 
 	hiInstantiateForm(newForm)
+	; Link only Lib→Cell; ViewNameField is free-text (allowAny) and must keep ViewSelected.
+	; ddHiLinkFields with ViewNameField would reset it to the first existing view on the cell.
 	ddHiLinkFields(
 		newForm->LibNameField
 		newForm->CellNameField
-		newForm->ViewNameField
 	)
-	; ddHiLinkFields resets ViewNameField to the first existing view; restore the intended name.
-	newForm->ViewNameField->value = ViewSelected
 	hiDisplayForm( newForm )
 	nil
 ))
