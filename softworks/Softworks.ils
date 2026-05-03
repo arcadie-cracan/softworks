@@ -166,6 +166,8 @@ putd('softworksTemplatesRoot softworksTemplatesRoot)
 putd('SoftworksTemplatesRoot softworksTemplatesRoot)
 putd('softworksBlankDocTemplatePath softworksBlankDocTemplatePath)
 putd('SoftworksBlankDocTemplatePath softworksBlankDocTemplatePath)
+putd('softworksCreateDocViewFromTemplate softworksCreateDocViewFromTemplate)
+putd('SoftworksCreateDocViewFromTemplate softworksCreateDocViewFromTemplate)
 list(nil
 	'IdleTrigger IdleTrigger
 	'startGedit startGedit
