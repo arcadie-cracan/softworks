@@ -29,8 +29,8 @@ procedure(SoftworksGUICellViewStepTraceP()
 ; Default path helper: delegates to SoftworksDocPathFillFromEnv (Softworks.ils).
 ; DEBASE GUICellView uses SoftworksDocImportPathResult + ?defValue — no prog2(local setq).
 procedure(SoftworksNewDocViewFilePathDefault()
-  let(((SoftworksDocPathDbgVoid (when(SoftworksNewDocGuiVerboseP() warn("[Softworks GUI] defValue path: SoftworksDocPathFillFromEnv -> SoftworksDocImportPathResult")))))
-    let(((SoftworksDocPathDbgVoid (SoftworksDocPathFillFromEnv())))
+  let(((SoftworksDocPathDbgVoid when(SoftworksNewDocGuiVerboseP() warn("[Softworks GUI] defValue path: SoftworksDocPathFillFromEnv -> SoftworksDocImportPathResult"))))
+    let(((SoftworksDocPathDbgVoid SoftworksDocPathFillFromEnv()))
       SoftworksDocImportPathResult)))
 
 ; DEBASE: blankstrp may be absent on stripped stacks → eval: not a function - nil.
@@ -139,7 +139,7 @@ let((SelectionL newForm formName)
 	  when(SoftworksNewDocGuiVerboseP()
 	    warn("[Softworks NDGUI] CombinedGUI G0b calling GUICellView"))
 	  nil)
-	let(((SoftworksDocPathDbgVoid (when(SoftworksGUICellViewStepTraceP() warn("[Softworks NDGUI] CombinedGUI G0c SoftworksDocPathFillFromEnv before GUICellView")))))
+	let(((SoftworksDocPathDbgVoid when(SoftworksGUICellViewStepTraceP() warn("[Softworks NDGUI] CombinedGUI G0c SoftworksDocPathFillFromEnv before GUICellView"))))
 	  SoftworksDocPathFillFromEnv())
 	SelectionL = GUICellView(LibSelected CellSelected ViewSelected RootTypeHint)
 	progn(
