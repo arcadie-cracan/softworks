@@ -44,12 +44,25 @@ procedure(DataTrigger(@optional argList)
 	viewName = argList->viewName
 	rootType = argList->rootType
 	appName  = argList->appName
+	; Derive extension from rootType — needed for both open and create paths.
+	extension = case(rootType
+		("module"   ".py")
+		("notebook" ".ipynb")
+		("yaml"     ".yaml")
+		("toml"     ".toml")
+		("markdown" ".md")
+		("rst"      ".rst")
+		(t          ".py"))
+
 	; viewFileId is a dd object: use ~>name, not ->name (avoids "not a function - nil").
 	viewFileName = let((vf)
 	  vf = argList->viewFileId
 	  if(not(vf) then argList->fileName
 	  else if(stringp(vf) then vf
 	  else vf~>name)))
+	; When DEBASE omits both, use viewName + extension as the conventional master name.
+	when(not(viewFileName)
+	  viewFileName = strcat(viewName extension))
 
 	userWorkspacePath = if(getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE") then
 	  getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
@@ -60,15 +73,21 @@ procedure(DataTrigger(@optional argList)
 	    "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for Python view paths."
 	    userWorkspacePath)))
 
+	; Try with explicit filename first (returns file object with correct writePath);
+	; fall back to nil (returns view object whose writePath is the view directory).
+	objId = ddGetObj(libName cellName viewName viewFileName nil "r")
+	unless(objId
+	  objId = ddGetObj(libName cellName viewName nil nil "r"))
+
 	; Open existing file through the workspace symbolic link or else the direct path.
-	if(objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
+	if(objId then
 		filePath = ddGetObjWritePath(objId)
-		; viewFileName may be nil when DEBASE omits fileName/viewFileId; resolve from path.
-		when(not(viewFileName)
-		  viewFileName = car(reverse(parseString(filePath "/"))))
-		file_workspace_link_path = if(viewFileName then
-		  strcat(userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
-		else nil)
+		; ddGetObjWritePath on a view object returns the view directory, not the file.
+		; Append viewFileName to get the actual master file path.
+		when(isDir(filePath)
+		  filePath = strcat(filePath "/" viewFileName))
+		file_workspace_link_path = strcat(
+		  userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
 		let(((py VrtImport['Softworks]->Python))
 		  cond(
 		    ((eq py nil)
@@ -84,14 +103,6 @@ procedure(DataTrigger(@optional argList)
 		          libName cellName viewName))))
 	else
 		; Create a new file by copying a template.
-		extension = case(rootType
-			("module"   ".py")
-			("notebook" ".ipynb")
-			("yaml"     ".yaml")
-			("toml"     ".toml")
-			("markdown" ".md")
-			("rst"      ".rst")
-			(t          ".py"))
 		templateName = strcat(rootType "Template" extension)
 		fileName = strcat(viewName extension)
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
