@@ -1,38 +1,97 @@
 printf("  Loading HTML support...")
 
+; Set SdmHTMLDataTrigger to the procedure object here, not as HTML->DataTrigger: on some
+; Virtuoso builds the alist "->" form returns nil, so init sees a non-function trigger.
+
 let((HTML
-	   (module_description "Adds an HTML (*.html) view type to Virtuoso")
-	   (Softworks VrtImport['Softworks]))
+	(module_description "Adds an HTML (*.html) view type to Virtuoso")
+	(Softworks VrtImport['Softworks]))
 
-HTML = letseq((
-	(viewType "html")
+HTML = let((
 	(viewSetup '(
-		;(viewType  appName dataTrigger parentType)
-		(viewType "firefox" "SdmHTMLDataTrigger" nil) 
-	 )
-	))
- 
-procedure(init()
-	"Register HTML Cellview Types"
-	Softworks->initDeRegApp(viewSetup)
-)
+	;(viewType  appName dataTrigger parentType)
+	("html" "firefox" "SdmHTMLDataTrigger" nil)
+	)))
 
-; uninitialize all Python views so they can be redefined
+; Register HTML Cellview Types
+procedure(init()
+	Softworks->initDeRegApp(viewSetup))
+
+; Uninitialize HTML views so they can be redefined
 procedure(uninit()
-	Softworks->uninitDeRegApp(viewSetup)
-)
+	Softworks->uninitDeRegApp(viewSetup))
+
+procedure(startReader(filePath)
+	system(strcat("firefox " filePath)))
+
+; HTML is an import/open-only view type — HTML pages are generated artifacts, not created blank.
+; If the view does not exist, direct the user to the Library Manager import action.
+procedure(DataTrigger(@optional argList)
+	if(not(argList) then
+		warn("Softworks: SdmHTMLDataTrigger called with nil argList")
+		t
+	else
+	let((libName cellName lname file fileReadable objId viewFileName viewName rootType)
+	libName = argList->libName
+	cellName = argList->cellName
+	viewName = argList->viewName
+	rootType = argList->rootType
+	; viewFileId is a dd object on argList: use ~>name, not ->name (avoids "not a function - nil").
+	viewFileName = let((vf)
+	  vf = argList->viewFileId
+	  if(not(vf) then argList->fileName
+	  else if(stringp(vf) then vf
+	  else vf~>name)))
+	when(not(viewFileName)
+	  viewFileName = ddMapGetViewTypeFileName(
+	    if(argList->viewType then argList->viewType else argList->rootType)))
+	when(not(viewFileName)
+	  viewFileName = strcat(viewName ".html"))
+	lname = if(argList->libId then argList->libId~>name else argList->libName)
+
+	objId = if(viewFileName then ddGetObj(lname cellName viewName viewFileName nil "r") else nil)
+	unless(objId
+	  objId = ddGetObj(lname cellName viewName nil nil "r"))
+	if(objId then
+		file = ddGetObjWritePath(objId)
+		fileReadable = if(file then isFile(file) else nil)
+		if(fileReadable then
+			let(((html VrtImport['Softworks]->HTML))
+			  cond(
+			    ((eq html nil)
+			     warn("[Softworks HTML] HTML module not loaded; cannot open viewer."))
+			    ((neq procedurep(html->startReader) nil)
+			     html->startReader(file))
+			    ((equal 0 0)
+			     warn("[Softworks HTML] startReader is not a procedure; cannot open viewer."))))
+		else
+			warn("Warning, couldn't open %s / %s / %s as an HTML view" libName cellName viewName))
+	else
+		warn("[Softworks HTML] No HTML view found for %s %s %s. Use 'Import Document as Cell View' in the Library Manager to import an HTML file."
+		     libName cellName viewName))
+	t
+	)))
+
+SdmHTMLDataTrigger = DataTrigger
+unless(procedurep(SdmHTMLDataTrigger)
+  warn(sprintf(nil
+    "[Softworks HTML] FATAL: SdmHTMLDataTrigger is not a procedure after bind (value=%L); DEBASE html trigger will fail."
+    SdmHTMLDataTrigger)))
 
 list(nil
 	'init init
 	'uninit uninit
+	'DataTrigger DataTrigger
+	'startReader startReader
 ))
 
 putprop(Softworks HTML 'HTML)
 HTML->init()
+unless(procedurep(SdmHTMLDataTrigger)
+  warn(sprintf(nil
+    "[Softworks HTML] FATAL: SdmHTMLDataTrigger lost procedure status after init (value=%L)."
+    SdmHTMLDataTrigger)))
 
 )
-
-;Global functions
-SdmHTMLDataTrigger = VrtImport['Firefox]->DataTrigger
 
 printf("done\n")
