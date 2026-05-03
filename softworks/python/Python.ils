@@ -62,8 +62,13 @@ procedure(DataTrigger(@optional argList)
 
 	; Open existing file through the workspace symbolic link or else the direct path.
 	if(objId = ddGetObj(libName cellName viewName viewFileName nil "r") then
-		file_workspace_link_path = strcat(userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
 		filePath = ddGetObjWritePath(objId)
+		; viewFileName may be nil when DEBASE omits fileName/viewFileId; resolve from path.
+		when(not(viewFileName)
+		  viewFileName = car(reverse(parseString(filePath "/"))))
+		file_workspace_link_path = if(viewFileName then
+		  strcat(userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
+		else nil)
 		let(((py VrtImport['Softworks]->Python))
 		  cond(
 		    ((eq py nil)
