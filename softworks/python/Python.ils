@@ -94,15 +94,13 @@ procedure(DataTrigger(@optional argList)
 		  cond(
 		    ((eq py nil)
 		     warn("[Softworks Python] Python module not loaded; cannot open editor."))
-		    ((not(procedurep(py->startReader)))
-		     warn("[Softworks Python] startReader is not a procedure; cannot open editor."))
-		    ((isFile(file_workspace_link_path))
-		     py->startReader(appName file_workspace_link_path))
-		    ((isFile(filePath))
-		     py->startReader(appName filePath))
+		    ((neq procedurep(py->startReader) nil)
+		     if(isFile(file_workspace_link_path) then
+		       py->startReader(appName file_workspace_link_path)
+		     else when(isFile(filePath)
+		       py->startReader(appName filePath))))
 		    ((equal 0 0)
-		     warn("Warning, couldn't open %s / %s / %s as a Python view"
-		          libName cellName viewName))))
+		     warn("[Softworks Python] startReader is not a procedure; cannot open editor."))))
 	else
 		; Create a new file by copying a template.
 		templateName = strcat(rootType "Template" extension)
