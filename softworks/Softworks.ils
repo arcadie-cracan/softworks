@@ -79,30 +79,23 @@ procedure(softworksEffectiveProjectRoot()
 )
 
 ; Parent of pptx/, xlsx/, pdf/, html/ blank-document templates.
-; SOFTWORKS_TEMPLATES_DIR when set and non-empty; else SOFTWORKS_ROOT/src (legacy).
+; Returns SOFTWORKS_TEMPLATES_DIR when set and non-empty, else nil.
 procedure(softworksTemplatesRoot()
-  "Returns template root dir string or nil if neither env var can provide a path."
-  let(((td getShellEnvVar("SOFTWORKS_TEMPLATES_DIR"))
-       (root getShellEnvVar("SOFTWORKS_ROOT")))
-    if(td && greaterp(strlen(td) 0) then
-      td
-    else
-      if(root && greaterp(strlen(root) 0) then
-        strcat(root "/src")
-      else
-        progn(
-          warn("Softworks: SOFTWORKS_TEMPLATES_DIR is unset and SOFTWORKS_ROOT is unset; blank doc template copy will fail.")
-          nil)))))
+  "Returns SOFTWORKS_TEMPLATES_DIR string or nil when the variable is unset/empty."
+  let(((td getShellEnvVar("SOFTWORKS_TEMPLATES_DIR")))
+    cond(
+      ((neq stringp(td) nil)
+       cond(
+         ((greaterp strlen(td) 0) td)
+         ((equal 0 0) nil)))
+      ((equal 0 0) nil))))
 
 procedure(softworksBlankDocTemplatePath(relativeTemplatePath "t")
-  "Full path to a file under the template root, e.g. \"xlsx/xlsxTemplate.xlsx\"."
-  let(((base nil))
-    progn(
-      base = softworksTemplatesRoot()
-      if(base then
-	strcat(base "/" relativeTemplatePath)
-      else
-	error("Softworks: cannot resolve blank document templates; set SOFTWORKS_TEMPLATES_DIR or SOFTWORKS_ROOT.")))))
+  "Full path to a template file, or nil when SOFTWORKS_TEMPLATES_DIR is unset."
+  let(((base softworksTemplatesRoot()))
+    cond(
+      ((neq base nil) strcat(base "/" relativeTemplatePath))
+      ((equal 0 0) nil))))
 
 ; Default directory for documentation import GUIs (PPTX/PDF/etc. file picker start path).
 ; SOFTWORKS_DOC_DIR overrides; otherwise <effective project root>/doc/ (warn if both override env vars unset).
