@@ -89,7 +89,7 @@ procedure(softworksTemplatesRoot()
   let(((td getShellEnvVar("SOFTWORKS_TEMPLATES_DIR")))
     cond(
       ((and (neq stringp(td) nil) (greaterp strlen(td) 0)) td)
-      ((equal 0 0) strcat(SoftworksInstallDir "templates")))))
+      ((equal 0 0) strcat(SoftworksInstallDir "/templates")))))
 
 procedure(softworksBlankDocTemplatePath(relativeTemplatePath "t")
   "Full path to a template file under the active template root."

@@ -89,7 +89,7 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 		    cond(
 			  ((neq isReadable(templatePath) t)
 			   warn("Softworks: template %s not found; falling back to built-in template." templatePath)
-			   sourcePath = strcat(SoftworksInstallDir "templates/" car(reverse(parseString(templatePath "/"))))))
+			   sourcePath = strcat(SoftworksInstallDir "/templates/" car(reverse(parseString(templatePath "/"))))))
 		    cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(sourcePath) " " EscapeSpecialCharacters(writePath)))
 		    if(not(cpSuccess) then
 			  error("The file copy failed.  Could not copy template %s to %s" sourcePath writePath)
