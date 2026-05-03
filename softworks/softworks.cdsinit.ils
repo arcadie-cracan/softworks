@@ -10,11 +10,11 @@ let((dir_path src_path packages)
 		"NewDocViewGUI.ils"
 		"python/Python.ils"
 		"skill/Skill.ils"
-		"pdf/PDF.ils"
+		"pdf/SdmPdf.ils"
 		"pptx/SdmPptx.ils"
 		"xlsx/SdmXlsx.ils"
 		"docx/SdmDocx.ils"
-		;"html/SdmHtml.ils" ; not yet implemented
+		"view_types/SdmHtml.ils"
 		;"code_workspace.il" ; Create Code Workspace
 	)
 	VrtImport['Module]->LoadList(packages
