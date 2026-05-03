@@ -54,7 +54,7 @@ procedure(DataTrigger(@optional argList)
 	userWorkspacePath = if(getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE") then
 	  getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
 	else
-	  strcat(Softworks->softworksEffectiveProjectRoot() "/softworks_workspace"))
+	  strcat(softworksEffectiveProjectRoot() "/softworks_workspace"))
 	unless(getShellEnvVar("SOFTWORKS_VSCODE_WORKSPACE")
 	  warn(sprintf(nil
 	    "Softworks: SOFTWORKS_VSCODE_WORKSPACE is not set; using %s for Python view paths."
@@ -91,8 +91,7 @@ procedure(DataTrigger(@optional argList)
 		fileName = strcat(cellName extension)
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
 		  filePath = ddGetObjWritePath(objId)
-		  softworks_root_path = VrtImport['Package]->GetPackageMetadata(VrtImport['Softworks])['project_root_path]
-		  system(sprintf(nil "cp %s/python/%s %s" softworks_root_path templateName filePath))
+		  system(sprintf(nil "cp %s/python/%s %s" SoftworksInstallDir templateName filePath))
 		  let(((py VrtImport['Softworks]->Python))
 		    cond(
 		      ((eq py nil)
