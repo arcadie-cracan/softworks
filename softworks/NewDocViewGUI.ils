@@ -117,6 +117,8 @@ let((SelectionL newForm formName)
 		newForm->CellNameField
 		newForm->ViewNameField
 	)
+	; ddHiLinkFields resets ViewNameField to the first existing view; restore the intended name.
+	newForm->ViewNameField->value = ViewSelected
 	hiDisplayForm( newForm )
 	nil
 ))
