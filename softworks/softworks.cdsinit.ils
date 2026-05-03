@@ -11,7 +11,7 @@ let((dir_path src_path packages)
 		"python/Python.ils"
 		"skill/Skill.ils"
 		"pdf/PDF.ils"
-		"pptx/PPTX.ils"
+		"pptx/SdmPptx.ils"
 		"xlsx/SdmXlsx.ils"
 		;"html/SdmHtml.ils" ; not yet implemented
 		;"code_workspace.il" ; Create Code Workspace
