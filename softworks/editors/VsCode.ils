@@ -68,6 +68,7 @@ Module->AddFunction(Softworks 'VsCode VsCode)
 
 ; Must be inside the let where VsCode is in scope.
 SdmVsCodeOpen = VsCode->open
+putd('SdmVsCodeOpen SdmVsCodeOpen)
 SdmVsCodeStartLmgrCB = VsCode->StartLmgrCB
 unless(procedurep(SdmVsCodeOpen)
   warn(sprintf(nil
