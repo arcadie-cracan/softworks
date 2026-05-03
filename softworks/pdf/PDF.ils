@@ -68,8 +68,12 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PDF view" libName cellName viewName))
 	else
-		warn("[Softworks PDF] No PDF view found for %s %s %s. Use 'Import Document as Cell View' in the Library Manager to import a PDF."
-		     libName cellName viewName))
+		; No existing view — open the import dialog pre-filled with lib/cell/view.
+		if(procedurep(SdmCreateViewFromFileGUI) then
+			SdmCreateViewFromFileGUI(lname cellName viewName)
+		else
+			warn("[Softworks PDF] No PDF view found for %s %s %s. Use 'Import Document as Cell View' in the Library Manager to import a PDF."
+			     libName cellName viewName)))
 	t
 	)))
 
