@@ -32,7 +32,7 @@ procedure(DataTrigger(@optional argList)
 		warn("Softworks: SdmPPTXDataTrigger called with nil argList")
 		t
 	else
-	let((libName cellName lname file objId viewFileName viewName rootType fileReadable ndg cgui)
+	let((libName cellName lname file objId viewFileName viewName rootType fileReadable)
 	libName = argList->libName
 	cellName = argList->cellName
 	viewName = argList->viewName
@@ -72,16 +72,10 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a PPTX view" libName cellName viewName))
 	else
-		ndg = Softworks->NewDocViewGUI
-		cgui = if(ndg then ndg->CombinedGUI else nil)
-		unless(cgui
-		  cgui = if(boundp('SdmCombinedGUI) then SdmCombinedGUI else nil))
-		if(procedurep(cgui) then
-			cgui(libName cellName viewName rootType)
-		else
-			warn(sprintf(nil
-			  "[Softworks PPTX] No callable CombinedGUI for new pptx view (lib=%L cell=%L view=%L). ndg=%L. If NewDocViewGUI loaded, check SdmCombinedGUI / NewDocViewGUI->CombinedGUI."
-			  libName cellName viewName ndg)))
+		let(((writePath softworksCreateDocViewFromTemplate(lname cellName viewName viewFileName "pptx/pptxTemplate.pptx")))
+		  when(writePath
+		    let(((pptx VrtImport['Softworks]->PPTX))
+		      cond(((neq procedurep(pptx->startReader) nil) pptx->startReader(writePath))))))
 	)
 	t
 	)))

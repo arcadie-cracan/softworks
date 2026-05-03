@@ -32,7 +32,7 @@ procedure(DataTrigger(@optional argList)
 		warn("Softworks: SdmDocxDataTrigger called with nil argList")
 		t
 	else
-	let((libName cellName lname file fileReadable objId viewFileName viewName rootType ndg cgui)
+	let((libName cellName lname file fileReadable objId viewFileName viewName rootType)
 	libName = argList->libName
 	cellName = argList->cellName
 	viewName = argList->viewName
@@ -72,16 +72,10 @@ procedure(DataTrigger(@optional argList)
 		else
 			warn("Warning, couldn't open %s / %s / %s as a DOCX view" libName cellName viewName))
 	else
-		ndg = Softworks->NewDocViewGUI
-		cgui = if(ndg then ndg->CombinedGUI else nil)
-		unless(cgui
-		  cgui = if(boundp('SdmCombinedGUI) then SdmCombinedGUI else nil))
-		if(procedurep(cgui) then
-			cgui(libName cellName viewName rootType)
-		else
-			warn(sprintf(nil
-			  "[Softworks DOCX] No callable CombinedGUI for new docx view (lib=%L cell=%L view=%L). ndg=%L. If NewDocViewGUI loaded, check SdmCombinedGUI / NewDocViewGUI->CombinedGUI."
-			  libName cellName viewName ndg)))
+		let(((writePath softworksCreateDocViewFromTemplate(lname cellName viewName viewFileName "docx/docxTemplate.docx")))
+		  when(writePath
+		    let(((docx VrtImport['Softworks]->DOCX))
+		      cond(((neq procedurep(docx->startReader) nil) docx->startReader(writePath))))))
 	)
 	t
 	)))

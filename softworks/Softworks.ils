@@ -95,6 +95,28 @@ procedure(softworksBlankDocTemplatePath(relativeTemplatePath "t")
   "Full path to a template file under the active template root."
   strcat(softworksTemplatesRoot() "/" relativeTemplatePath))
 
+; Create a cell view and populate it from the matching blank template.
+; Returns the writePath string on success, nil on failure.
+; relTemplatePath e.g. "xlsx/xlsxTemplate.xlsx" — resolved via softworksBlankDocTemplatePath.
+procedure(softworksCreateDocViewFromTemplate(lname cellName viewName viewFileName relTemplatePath)
+  let(((viewObj ddGetObj(lname cellName viewName viewFileName nil "w"))
+       (templatePath nil)
+       (sourcePath nil))
+    cond(
+      ((eq viewObj nil)
+       warn("Softworks: cannot create cell view %s %s %s %s" lname cellName viewName viewFileName)
+       nil)
+      ((equal 0 0)
+       templatePath = softworksBlankDocTemplatePath(relTemplatePath)
+       sourcePath = cond(
+         ((neq isReadable(templatePath) t)
+          warn("Softworks: template %s not found; using built-in." templatePath)
+          strcat(SoftworksInstallDir "/templates/" car(reverse(parseString(relTemplatePath "/")))))
+         ((equal 0 0) templatePath))
+       shell(strcat("cp -f " sourcePath " " viewObj~>writePath))
+       ddUpdateLibList()
+       viewObj~>writePath))))
+
 ; Default directory for documentation import GUIs (PPTX/PDF/etc. file picker start path).
 ; SOFTWORKS_DOC_DIR overrides; otherwise <effective project root>/doc/ (warn if both override env vars unset).
 procedure(softworksProjectDocDir()
@@ -133,6 +155,8 @@ softworksTemplatesRoot = softworksTemplatesRoot
 SoftworksTemplatesRoot = softworksTemplatesRoot
 softworksBlankDocTemplatePath = softworksBlankDocTemplatePath
 SoftworksBlankDocTemplatePath = softworksBlankDocTemplatePath
+softworksCreateDocViewFromTemplate = softworksCreateDocViewFromTemplate
+SoftworksCreateDocViewFromTemplate = softworksCreateDocViewFromTemplate
 putd('SdmIdleTrigger IdleTrigger)
 putd('softworksProjectDocDir softworksProjectDocDir)
 putd('SoftworksProjectDocDir softworksProjectDocDir)
@@ -152,6 +176,7 @@ list(nil
 	'softworksEffectiveProjectRoot softworksEffectiveProjectRoot
 	'softworksTemplatesRoot softworksTemplatesRoot
 	'softworksBlankDocTemplatePath softworksBlankDocTemplatePath
+	'softworksCreateDocViewFromTemplate softworksCreateDocViewFromTemplate
 ))
 
 Softworks = VrtImport['Package]->New('Softworks
