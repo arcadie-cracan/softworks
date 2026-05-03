@@ -1,0 +1,11 @@
+// DOCX (SdmDocx)
+
+DataFormat docx_df {
+	Pattern = *.docx;
+	Preferred_Editor = libreoffice_docx;
+	Default_Editor = libreoffice_docx;
+	dfII_ViewType = docx;
+	Co_Managed = master.tag data.dm *.docx;
+}
+Tool libreoffice_docx {  }
+

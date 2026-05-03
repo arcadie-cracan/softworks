@@ -20,7 +20,7 @@ procedure(SoftworksNormalizeDocKindTag(tagRaw)
 	  ; DEBASE: if(... then ... else ...) expands to cond with (t else-expr); avoid if entirely.
 	  cond(
 	    ((neq tag "") cond(
-	      ((neq member(tag '("xlsx" "pptx" "pdf" "html")) nil) tag)
+	      ((neq member(tag '("xlsx" "pptx" "pdf" "html" "docx")) nil) tag)
 	      ((neq member(tag '("pdf_view")) nil) "pdf")
 	      ((equal 0 0) nil)))
 	    ((equal 0 0) nil))))
@@ -83,6 +83,8 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 				templatePath = softworksBlankDocTemplatePath("pdf/pdfTemplate.pdf"))
 			(("HTML (*.html)")
 				templatePath = softworksBlankDocTemplatePath("html/htmlTemplate.html"))
+			(("Word Document (*.docx)")
+				templatePath = softworksBlankDocTemplatePath("docx/docxTemplate.docx"))
 		  )
 		  let(((sourcePath templatePath))
 		    ; Custom SOFTWORKS_TEMPLATES_DIR set but file absent → warn and fall back to built-in
@@ -124,7 +126,12 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 	            ((neq procedurep(m->startReader) nil)
 	             m->startReader(fp)))))
 	       ((equal ext "html")
-	        system(strcat("firefox " fp)))))))
+	        system(strcat("firefox " fp)))
+	       ((equal ext "docx")
+	        let(((m VrtImport['Softworks]->DOCX))
+	          cond(
+	            ((neq procedurep(m->startReader) nil)
+	             m->startReader(fp)))))))))
 )
 )
 
@@ -185,6 +192,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((neq member(docKind '("pptx")) nil) "Power Point (*.pptx)")
 	  ((neq member(docKind '("pdf")) nil) "PDF (*.pdf)")
 	  ((neq member(docKind '("html")) nil) "HTML (*.html)")
+	  ((neq member(docKind '("docx")) nil) "Word Document (*.docx)")
 	  ((equal 0 0) "Power Point (*.pptx)"))
 	filePathInvisible = nil
 	cond(
@@ -211,6 +219,10 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	    cond(
 	      ((neq member(viewTag '("html")) nil) "Review.html")
 	      ((equal 0 0) sprintf(nil "%s.html" viewTag))))
+	  ((neq member(docKind '("docx")) nil)
+	    cond(
+	      ((neq member(viewTag '("docx")) nil) "Review.docx")
+	      ((equal 0 0) sprintf(nil "%s.docx" viewTag))))
 	  ((equal 0 0) "Review.pptx"))
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
@@ -266,7 +278,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	; New Cell View 
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name       'ContentsOption
-		?choices    '("Power Point (*.pptx)" "Excel Spreadsheet (*.xlsx)" "PDF (*.pdf)" "HTML (*.html)")
+		?choices    '("Power Point (*.pptx)" "Excel Spreadsheet (*.xlsx)" "PDF (*.pdf)" "HTML (*.html)" "Word Document (*.docx)")
 		?defValue   contentsDef
 		?callback   UpdateFileContents
 		?prompt     "File Type"
@@ -326,7 +338,8 @@ procedure( CheckExtension(file)
 	strcmp(substring(file -4) ".mdf") ||
 	strcmp(substring(file -4) ".txt") ||
 	strcmp(substring(file -4) ".hml") ||
-	strcmp(substring(file -5) ".html")
+	strcmp(substring(file -5) ".html") ||
+	strcmp(substring(file -5) ".docx")
 )
 
 procedure( EscapeSpecialCharacters(t_fileName)
@@ -354,6 +367,8 @@ procedure( UpdateFileContents(_field scope item)
 		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pdf"))
 		(("HTML (*.html)")
 		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html"))
+		(("Word Document (*.docx)")
+		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".docx"))
 	  ) ; case
 	  nil))
 

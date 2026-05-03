@@ -13,6 +13,7 @@ def virtue_data_reg_paths() -> Tuple[Path]:
         files(softworks) / "data_reg" / "SdmXlsx.data.reg",
         files(softworks) / "data_reg" / "SdmPdf.data.reg",
         files(softworks) / "data_reg" / "SdmHtml.data.reg",
+        files(softworks) / "data_reg" / "SdmDocx.data.reg",
         )
 
 @virtue.hookimpl
