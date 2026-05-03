@@ -125,13 +125,6 @@ procedure(DataTrigger(@optional argList)
 	t
 	)))
 
-SdmPyDataTrigger = DataTrigger
-putd('SdmPyDataTrigger SdmPyDataTrigger)
-unless(procedurep(SdmPyDataTrigger)
-  warn(sprintf(nil
-    "[Softworks Python] FATAL: SdmPyDataTrigger is not a procedure after bind (value=%L); DEBASE triggers will fail."
-    SdmPyDataTrigger)))
-
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
@@ -154,6 +147,13 @@ list(nil
 	'DataTrigger DataTrigger
 	'startReader startReader
 ))
+
+; Capture DataTrigger from the alist AFTER the inner let exits, so the global
+; value cell is set at outer-let scope (not rolled back when the inner let exits).
+SdmPyDataTrigger = Python->DataTrigger
+putd('SdmPyDataTrigger SdmPyDataTrigger)
+unless(procedurep(SdmPyDataTrigger)
+  warn("[Softworks Python] FATAL: SdmPyDataTrigger is not a procedure; DEBASE triggers will fail."))
 
 putprop(Softworks Python 'Python)
 Python->init()
