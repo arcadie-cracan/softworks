@@ -4,3 +4,4 @@ SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmPptx.data.reg;
 SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmXlsx.data.reg;
 SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmPdf.data.reg;
 SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmHtml.data.reg;
+SOFTINCLUDE $SOFTWORKS_ROOT/softworks/data_reg/SdmDocx.data.reg;
