@@ -91,7 +91,7 @@ procedure(DataTrigger(@optional argList)
 		fileName = strcat(cellName extension)
 		if(objId = ddGetObj(libName cellName viewName fileName nil "w") then
 		  filePath = ddGetObjWritePath(objId)
-		  system(sprintf(nil "cp %s/python/%s %s" SoftworksInstallDir templateName filePath))
+		  system(sprintf(nil "cp %s/templates/%s %s" SoftworksInstallDir templateName filePath))
 		  let(((py VrtImport['Softworks]->Python))
 		    cond(
 		      ((eq py nil)
@@ -116,9 +116,20 @@ unless(procedurep(SdmPyDataTrigger)
 procedure(startReader(app filePath)
   case(app
     (("vscode_module" "vscode_notebook" "vscode_yaml" "vscode_markdown" "vscode_toml")
-      VrtImport['VsCode]->open(filePath))
+      let(((vs VrtImport['VsCode]))
+        cond(
+          ((eq vs nil)
+           warn("[Softworks Python] VsCode module not loaded; cannot open editor."))
+          ((neq procedurep(vs->open) nil)
+           vs->open(filePath))
+          ((equal 0 0)
+           warn("[Softworks Python] VsCode->open is not a procedure; cannot open editor.")))))
     (("gedit_module" "gedit_yaml" "gedit_markdown")
-      Softworks->startGedit(filePath))
+      let(((sg Softworks->startGedit))
+        cond(
+          ((neq procedurep(sg) nil) sg(filePath))
+          ((equal 0 0)
+           warn("[Softworks Python] Softworks->startGedit is not a procedure; cannot open editor.")))))
   )
 )
 
