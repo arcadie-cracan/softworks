@@ -9,7 +9,7 @@ let((PDF
 PDF = let((
 	(viewSetup '(
 	;(viewType  appName dataTrigger parentType)
-	("pdf_view" "firefox_pdf" "SdmPdfDataTrigger" nil)
+	("pdf" "firefox_pdf" "SdmPdfDataTrigger" nil)
 	)))
 
 ; Register All PDF Custom Cellviews
