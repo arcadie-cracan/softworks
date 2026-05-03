@@ -73,21 +73,23 @@ let((LibName CellName ViewName FileName viewFileObj overwrite cpSuccess fileSour
 		if(viewFileObj == nil then
 			error("Cannot create cell view %s %s %s with file name %s" LibName CellName ViewName FileName)
 		)
-		cpSuccess = fileSourceDescription = sprintf(nil "New cell created from %s" form->FilePathField->value)
-		case(form->ContentsOption->value 
+		let(((templatePath nil))
+		  case(form->ContentsOption->value 
 			(("Power Point (*.pptx)") 
-				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("pptx/pptxTemplate.pptx")) " " viewFileObj~>writePath)))
+				templatePath = softworksBlankDocTemplatePath("pptx/pptxTemplate.pptx"))
 			(("Excel Spreadsheet (*.xlsx)")
-				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("xlsx/xlsxTemplate.xlsx")) " " viewFileObj~>writePath)))
+				templatePath = softworksBlankDocTemplatePath("xlsx/xlsxTemplate.xlsx"))
 			(("PDF (*.pdf)")
-				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("pdf/pdfTemplate.pdf")) " " viewFileObj~>writePath)))
+				templatePath = softworksBlankDocTemplatePath("pdf/pdfTemplate.pdf"))
 			(("HTML (*.html)")
-				shell(strcat("cp -f " EscapeSpecialCharacters(softworksBlankDocTemplatePath("html/htmlTemplate.html")) " " viewFileObj~>writePath)))
-		)
-		if(not(cpSuccess) then
-			error("The file copy failed.  Could not copy template to %s" viewFileObj~>writePath)
-		else
-			printf("Created %s %s %s cell view %s" LibName CellName ViewName fileSourceDescription)
+				templatePath = softworksBlankDocTemplatePath("html/htmlTemplate.html"))
+		  )
+		  cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(templatePath) " " viewFileObj~>writePath))
+		  if(not(cpSuccess) then
+			error("The file copy failed.  Could not copy template %s to %s" templatePath viewFileObj~>writePath)
+		  else
+			printf("Created %s %s %s cell view from template %s\n" LibName CellName ViewName templatePath)
+		  )
 		)
 	) ; if statement for import / new cell view 
 	ddUpdateLibList() ; Update library list
