@@ -15,6 +15,75 @@ Reference: [Da-Buche/skill-best-practices](https://github.com/Da-Buche/skill-bes
 - For xlsx `SdmXLSXDataTrigger` diagnostics, set `SOFTWORKS_TRIGGER_TRACE=1` (or `SOFTWORKS_DEBUG=1`); the trigger logs T0–T5 and checks `SdmXLSXDataTrigger` at load. For NewDocView `CombinedGUI` / `GUICellView`, also set `SOFTWORKS_GUI_TRACE=1` (or any of the same three) to log `[Softworks GUI] …` steps. Prefer trace over ad hoc `printf` in CIW.
 - In `Softworks.ils`, assign `SdmIdleTrigger`, `softworksProjectDocDir`, and related names to the **procedure** values before the module `list`, then call **`putd('symbol procedure)`** for each. In SKILL++ `defValue`, **do not** call `softworksProjectDocDir()` or a let-bound `d()` even if `procedurep` is t — some flows still get `not a function - nil`. Use **`SoftworksInvokeProjectDocDir()`** instead: it mirrors the env/`pwd` logic of `softworksProjectDocDir` with **`getShellEnvVar` / `strcat` / `pwd` only** (no call into `softworksProjectDocDir`). `SoftworksNewDocViewFilePathDefault` in `NewDocViewGUI.ils` delegates to that helper. For standalone `doc/*` file pickers, `?defValue` can use `strcat(pwd() "/doc/")` or the same pattern. Do not rely only on `Import['Softworks]->softworksProjectDocDir` (can be nil in GUI / `?defValue` paths).
 
+## Known Virtuoso SKILL runtime quirks (hard-won, non-obvious)
+
+### `cond` conditions — NEVER use `(not(expr))` as a clause condition
+
+In `cond`, each clause is `(condition body)`. SKILL evaluates the condition as a
+LISP-style list expression. `(not(expr))` is a **one-element list**: SKILL evaluates
+`not(expr)` → `nil`, then tries to call `nil` as a function → `*Error* eval: not a function - nil`.
+
+```skill
+; ❌ CRASHES when not(expr) = nil
+cond(
+  ((not(procedurep(py->startReader))) warn("..."))
+  ...)
+
+; ✅ SAFE — neq with two args is a well-formed 3-element LISP call
+cond(
+  ((neq procedurep(py->startReader) nil) ...)
+  ...)
+```
+
+The same trap applies to any single-expression condition where the expression can
+evaluate to `nil`: `(isFile(x))` is fine (2-element LISP call), but `(not(isFile(x)))`,
+`(null(x))` etc. in condition position all risk the nil-call crash.
+Prefer positive multi-arg checks: `(neq expr nil)`, `(eq expr nil)`, `(equal a b)`.
+
+### `let` value-cell rollback — use `putd` for every global callable
+
+Assignments inside `let` blocks are **local**: when the `let` exits, value-cell
+assignments to outer symbols are rolled back. `putd` writes to the **function cell**
+which persists. Rule: for any procedure that DEBASE, a menu, or SKILL built-ins will
+call by symbol name, always call `putd('Symbol Symbol)` **outside** any `let` that
+could be rolled back:
+
+```skill
+; ❌ SdmPyDataTrigger value cell is unbound after the let exits
+let((...) procedure(DataTrigger ...) SdmPyDataTrigger = DataTrigger ...)
+
+; ✅ putd survives let exit; DEBASE uses the function cell
+putd('SdmPyDataTrigger DataTrigger)
+```
+
+### `->` method calls on dd objects — use `~>` not `->`
+
+`argList->viewFileId` returns a `ddViewType` or `ddViewFileType` object.
+Calling `vf->name` on it crashes ("eval: not a function - nil") because `->` is alist
+access, not method dispatch. Use `vf~>name` for SKILL OOP method calls on dd objects,
+and guard against object types that may lack the method:
+
+```skill
+; ❌ crashes if vf is a ddViewType (no name method in alist)
+viewFileName = vf->name
+
+; ✅ method dispatch + nil fallback
+viewFileName = if(stringp(vf) then vf else nil)
+when(not(viewFileName) viewFileName = strcat(viewName extension))
+```
+
+### Diagnosing "eval: not a function - nil" in DataTriggers
+
+When this error appears inside `SdmPyDataTrigger` / `SdmXLSXDataTrigger` etc.:
+
+1. Install a debug lambda: `putd('SdmXxxDataTrigger lambda((argList) printf("DBG...") ... t))`
+   to isolate which step crashes.
+2. Call the **real** funobj directly via `funcall`:
+   `funcall(VrtImport['Softworks]->Python->DataTrigger argList)` — if this crashes but
+   the lambda works, the bug is in the cond/let structure of the real procedure.
+3. Check `getd('ipcIsActiveProcess)` — may be absent in some Virtuoso builds; guard
+   with `if(getd('ipcIsActiveProcess) then ... else ...)`.
+
 ## Style and safety (from the guide)
 
 - **Formatting:** use `warn` / `printf` / `sprintf` with a **format string first** (e.g. `"%s" str`), not a dynamic string as the sole first argument, when content may contain `%`.

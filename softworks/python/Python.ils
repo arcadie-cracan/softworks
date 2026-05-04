@@ -90,6 +90,9 @@ procedure(DataTrigger(@optional argList)
 		  filePath = strcat(filePath "/" viewFileName))
 		file_workspace_link_path = strcat(
 		  userWorkspacePath "/" libName "/" cellName "/" viewName "/" viewFileName)
+		; Note: use (neq procedurep(x) nil) not (not(procedurep(x))) as a cond condition.
+		; In this Virtuoso build (not(expr)) in cond condition position is a one-element
+		; LISP list: SKILL evaluates not(expr)->nil then tries to call nil() -> crash.
 		let(((py VrtImport['Softworks]->Python))
 		  cond(
 		    ((eq py nil)
