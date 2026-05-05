@@ -94,6 +94,23 @@ procedure( sdmGetViewMasterFile(viewObj)
         close(p)
         car(parseString(line "\n\r \t"))))))
 
+; Browse button callback for the import form.
+; Opens a file chooser filtered to the extension currently selected in DocTypeDropdown.
+; For existing views the dropdown is locked to the detected type, so the filter
+; automatically matches the on-disk format.
+procedure( browseSourceFileCB(form)
+  let(((ext    sdmContentsToExt(form->DocTypeDropdown->value))
+       (filter sdmDocExtFilter(or(ext "")))
+       (workDir or(form->FilePathField->value SoftworksDocImportPathResult pwd()))
+       file)
+    file = hiGetExistingFile(
+      ?workingDir workDir
+      ?filter     filter
+      ?modal      t)
+    when(file
+      form->FilePathField->value =
+        simplifyFilenameUnique(strcat(car(file) "/" cadr(file))))))
+
 ; ViewNameField callback — checks whether the view exists and updates the dialog state.
 ;
 ;   View exists with recognised extension  → lock DocTypeDropdown to detected type,
@@ -117,11 +134,13 @@ procedure( checkViewExistsCB(field scope)
           scope->DocTypeDropdown->value   = docLabel
           scope->DocTypeDropdown->enabled = nil)
         scope->FilePathField->enabled    = t
+        scope->BrowseButton->enabled     = t
         scope->ImportModeLabel->value    = "Will overwrite existing cell view"
       else
         ; ── New view: let user pick the document type ──────────────────────
         scope->DocTypeDropdown->enabled  = t
         scope->FilePathField->enabled    = t
+        scope->BrowseButton->enabled     = t
         scope->ImportModeLabel->value    = "Will create a new cell view")))
   nil)
 
@@ -343,13 +362,17 @@ let((SelectionL newForm formName existingViewObj existingExt
 			?editable  nil
 			?enabled   t)
 			5:170 400:30 90))
-		SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
+		SelectionL = tconc(SelectionL list(hiCreateStringField(
 			?name     'FilePathField
-			?mode     'existingFile
 			?prompt   "Source File"
 			?defValue  SoftworksDocImportPathResult
 			?editable  t)
-			5:210 400:30 100))
+			5:210 365:30 100))
+		SelectionL = tconc(SelectionL list(hiCreateButton(
+			?name       'BrowseButton
+			?buttonText "Browse..."
+			?callback   browseSourceFileCB)
+			375:210 85:30 60))
 		; FileName is derived automatically at OK time (not a form field):
 		;   Existing view  →  basename of ddGetObjWritePath (preserves the on-disk name)
 		;   New view       →  CellName + "." + DocTypeDropdown extension
