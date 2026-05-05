@@ -79,6 +79,21 @@ procedure( sdmExtToDocLabel(ext)
     (("docx") "Word Document (*.docx)")
     (t nil)))
 
+; Read the master filename from a view's master.tag file.
+; ddGetObjWritePath on a view opened without a filename returns the view
+; directory, not the master file path.  This function parses the second line of
+; master.tag (which contains the bare filename, e.g. "datasheet.xlsx") instead.
+; Returns the filename string or nil if master.tag is missing / unreadable.
+procedure( sdmGetViewMasterFile(viewObj)
+  let(((viewDir ddGetObjWritePath(viewObj)) p line)
+    when(viewDir
+      p = infile(strcat(viewDir "/master.tag"))
+      when(p
+        gets(line p)   ; skip "-- Master.tag File, Rev:1.0" header
+        gets(line p)   ; master filename line
+        close(p)
+        car(parseString(line "\n\r \t"))))))
+
 ; ViewNameField callback — checks whether the view exists and updates the dialog state.
 ;
 ;   View exists with recognised extension  → lock DocTypeDropdown to detected type,
@@ -95,10 +110,9 @@ procedure( checkViewExistsCB(field scope)
         ddGetObj(lib cell view nil nil "r"))
       if(viewObj then
         ; ── Existing view: detect type from master-file extension ──────────
-        masterPath = ddGetObjWritePath(viewObj)
-        ext        = car(reverse(parseString(
-                       car(reverse(parseString(masterPath "/"))) ".")))
-        docLabel   = sdmExtToDocLabel(ext)
+        ext      = car(reverse(parseString(
+                     or(sdmGetViewMasterFile(viewObj) "") ".")))
+        docLabel = sdmExtToDocLabel(ext)
         when(docLabel
           scope->DocTypeDropdown->value   = docLabel
           scope->DocTypeDropdown->enabled = nil)
@@ -171,7 +185,7 @@ let((LibName CellName ViewName FileName ext viewFileObj cpSuccess)
 ; The file extension comes from DocTypeDropdown, NOT from the view name, so any
 ; view name (e.g. "datasheet", "installation_guide") works correctly.
 procedure( createViewFromFileCB( form )
-let((LibName CellName ViewName FileName FilePath ext masterPath viewFileObj overwrite cpSuccess)
+let((LibName CellName ViewName FileName FilePath ext viewFileObj overwrite cpSuccess)
 	if( form == nil then
 		form = hiGetCurrentForm()
 	)
@@ -190,8 +204,7 @@ let((LibName CellName ViewName FileName FilePath ext masterPath viewFileObj over
 	viewFileObj = ddGetObj(LibName CellName ViewName nil nil "r")
 	if(viewFileObj then
 		; ── Overwrite existing ───────────────────────────────────────────
-		masterPath = ddGetObjWritePath(viewFileObj)
-		FileName   = car(reverse(parseString(masterPath "/")))
+		FileName   = sdmGetViewMasterFile(viewFileObj)
 		overwrite  = hiDisplayAppDBox(
 			?name 'OverwriteDBox
 			?dboxBanner "Overwrite Existing Cell View?"
@@ -260,13 +273,12 @@ let((SelectionL newForm formName existingViewObj existingExt
 	; If the extension is unrecognised (non-Softworks), refuse to open the form.
 	existingExt = nil
 	when(existingViewObj
-		let(((mp ddGetObjWritePath(existingViewObj)))
-		  existingExt = car(reverse(parseString(
-		                  car(reverse(parseString(mp "/"))) ".")))
-		  unless(sdmExtToDocLabel(existingExt)
-		    warn("[Softworks] Cannot import into %s / %s / %s: unrecognized file extension '%s'."
-		         LibSelected CellSelected ViewSelected existingExt)
-		    existingExt = nil)))
+		existingExt = car(reverse(parseString(
+		                or(sdmGetViewMasterFile(existingViewObj) "") ".")))
+		unless(sdmExtToDocLabel(existingExt)
+		  warn("[Softworks] Cannot import into %s / %s / %s: unrecognized file extension '%s'."
+		       LibSelected CellSelected ViewSelected existingExt)
+		  existingExt = nil))
 	if(existingViewObj && not(existingExt) then
 		nil ; blocked — existing view with unrecognised extension
 	else
