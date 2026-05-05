@@ -319,7 +319,9 @@ let((SelectionL newForm formName existingViewObj isSdmType initialMode)
 		ddHiLinkFields(
 			newForm->LibNameField
 			newForm->CellNameField
+			newForm->ViewNameField
 		)
+		; Set ViewNameField after linking so ddHiLinkFields does not clear it.
 		newForm->ViewNameField->value = ViewSelected
 		hiDisplayForm( newForm )
 		nil
