@@ -58,6 +58,16 @@ procedure( sdmDocExtFilter(viewType)
     (("docx") "Word Documents (*.docx);;All Files (*)")
     (t        "Document Files (*.pdf *.pptx *.xlsx *.html *.docx);;All Files (*)")))
 
+; Maps a ContentsOption cyclic-field label to its bare file extension string.
+procedure( sdmContentsToExt(contentsValue)
+  case(contentsValue
+    (("Power Point (*.pptx)")       "pptx")
+    (("Excel Spreadsheet (*.xlsx)") "xlsx")
+    (("PDF (*.pdf)")                "pdf")
+    (("HTML (*.html)")              "html")
+    (("Word Document (*.docx)")     "docx")
+    (t nil)))
+
 ; "Import to" cyclic callback.
 ; FileNameField has been removed; the file name is derived automatically in
 ; createViewFromFileCB, so no UI update is needed on mode change.
@@ -95,19 +105,19 @@ procedure( checkViewExistsCB(field scope)
 
 ; Callback for the New Documentation Cell View form (DataTrigger path).
 ; Creates a blank cell view from a template and launches the editor.
+; FileName is derived as CellName + "." + extension (e.g. "Design_Manual.pptx").
 procedure( createViewCB( form )
-let((LibName CellName ViewName FileName viewFileObj cpSuccess)
+let((LibName CellName ViewName FileName ext viewFileObj cpSuccess)
 	if( form == nil then
 		form = hiGetCurrentForm()
 	)
 	LibName  = form->LibNameField->value
 	CellName = form->CellNameField->value
 	ViewName = form->ViewNameField->value
-	FileName = form->FileNameField->value
-
-	if(!CheckExtension(FileName)
-		error("The file %s does not have a supported file extension" FileName)
-	)
+	ext      = sdmContentsToExt(form->ContentsOption->value)
+	unless(ext
+		error("Unrecognised file type selection: %s" form->ContentsOption->value))
+	FileName = strcat(CellName "." ext)
 	viewFileObj = ddGetObj(LibName CellName ViewName FileName nil "w")
 	if(viewFileObj == nil then
 		error("Cannot create cell view %s %s %s with file name %s" LibName CellName ViewName FileName)
@@ -143,7 +153,7 @@ let((LibName CellName ViewName FileName viewFileObj cpSuccess)
 	hiFormUnmap(form)
 	cond(
 	  ((neq cpSuccess nil)
-	   launchDocEditor(viewFileObj~>writePath car(reverse(parseString(FileName "."))))))
+	   launchDocEditor(viewFileObj~>writePath ext)))
 ))
 
 ; Callback for the Import Document as Cell View form (Library Manager path).
@@ -318,7 +328,7 @@ let((SelectionL newForm formName existingViewObj isSdmType initialMode)
 
 ; Build the New-view form fields (used by CombinedGUI).
 procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeHint)
-  let((SelectionL viewTag viewDocKind docKind unknownDocKind contentsDef fileNameDef)
+  let((SelectionL viewTag viewDocKind docKind unknownDocKind contentsDef)
 	SelectionL = nil
 	viewTag = cond(
 	  ((neq stringp(ViewSelected) nil) ViewSelected)
@@ -340,30 +350,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 	  ((neq member(docKind '("html")) nil) "HTML (*.html)")
 	  ((neq member(docKind '("docx")) nil) "Word Document (*.docx)")
 	  ((equal 0 0) "Power Point (*.pptx)"))
-	fileNameDef = cond(
-	  ((neq unknownDocKind nil) "Review.pptx")
-	  ((neq member(docKind '("xlsx")) nil)
-	    cond(
-	      ((neq member(viewTag '("xlsx")) nil) "Review.xlsx")
-	      ((equal 0 0) sprintf(nil "%s.xlsx" viewTag))))
-	  ((neq member(docKind '("pptx")) nil)
-	    cond(
-	      ((neq member(viewTag '("pptx")) nil) "Review.pptx")
-	      ((equal 0 0) sprintf(nil "%s.pptx" viewTag))))
-	  ((neq member(docKind '("pdf")) nil)
-	    cond(
-	      ((neq member(viewTag '("pdf")) nil) "Review.pdf")
-	      ((neq member(viewTag '("pdf_view")) nil) "Review.pdf")
-	      ((equal 0 0) sprintf(nil "%s.pdf" viewTag))))
-	  ((neq member(docKind '("html")) nil)
-	    cond(
-	      ((neq member(viewTag '("html")) nil) "Review.html")
-	      ((equal 0 0) sprintf(nil "%s.html" viewTag))))
-	  ((neq member(docKind '("docx")) nil)
-	    cond(
-	      ((neq member(viewTag '("docx")) nil) "Review.docx")
-	      ((equal 0 0) sprintf(nil "%s.docx" viewTag))))
-	  ((equal 0 0) "Review.pptx"))
 	; LIB, CELL, VIEW SELECTION
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 		?name       'LibNameField
@@ -389,14 +375,7 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?validationType  'allowAny
 		?editable   t)
 		5:90 400:30 60))
-	SelectionL = tconc(SelectionL list(hiCreateStringField(
-		?name      'FileNameField
-		?prompt    "File Name"
-		?defValue  fileNameDef
-		?modifyCallback CheckFileName
-		?editable  t
-		?enabled   t)
-		5:130 400:30 100))
+	; FileNameField removed: FileName = CellName + "." + ext is derived in createViewCB.
 	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
 		?name       'ContentsOption
 		?choices    '("Power Point (*.pptx)" "Excel Spreadsheet (*.xlsx)" "PDF (*.pdf)" "HTML (*.html)" "Word Document (*.docx)")
@@ -407,18 +386,6 @@ procedure( GUICellView(LibSelected CellSelected ViewSelected @optional RootTypeH
 		?keepHistory t)
 		5:170 400:30 100))
 	SelectionL
-))
-
-; Update the file name to work nicely with Unix
-procedure( CheckFileName(_field _scope t_latestTextValue _g_sourceOfChange)
-let( (comPat1 comPat2 comPat3 out)
-	comPat1 = pcreCompile( " " )
-	out = pcreReplace( comPat1 t_latestTextValue "_" 0 )
-	comPat2 = pcreCompile( "[^A-Z^a-z^0-9^_^\\.]+" )
-	out = pcreReplace( comPat2 out "" 0 )
-	comPat3 = pcreCompile( "[\\^]" )
-	out = pcreReplace( comPat3 out "" 0 )
-	out
 ))
 
 procedure( CheckExtension(file)
@@ -443,21 +410,13 @@ let( (comPat1 comPat2 comPat3 out)
 	out = pcreReplace( comPat3 out "\\* " 0 )
 ))
 
+; ContentsOption callback: keeps ViewNameField in sync with the selected file type.
 ; HI treats cyclic ?callback return as callable — progn forces nil result.
 procedure( UpdateFileContents(_field scope item)
 	progn(
-	  case(item
-		(("Power Point (*.pptx)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pptx"))
-		(("Excel Spreadsheet (*.xlsx)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".xlsx"))
-		(("PDF (*.pdf)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pdf"))
-		(("HTML (*.html)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html"))
-		(("Word Document (*.docx)")
-		 scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".docx"))
-	  )
+	  let(((ext sdmContentsToExt(item)))
+	    when(ext
+	      scope->ViewNameField->value = ext))
 	  nil))
 
 list(nil
