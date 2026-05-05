@@ -111,7 +111,6 @@ procedure( checkViewExistsCB(field scope)
         ; Restore controls and set the type-appropriate file filter.
         scope->ImportNewDropdown->enabled = t
         scope->FilePathField->enabled     = t
-        scope->FilePathField->filter      = sdmDocExtFilter(view)
         viewObj = when(lib != "" && cell != ""
           ddGetObj(lib cell view nil nil "r"))
         if(viewObj then
@@ -266,7 +265,7 @@ let((SelectionL newForm formName)
 ; Library Manager path: import an existing file into either an existing or new cell view.
 procedure( CreateViewFromFileGUI(@optional (LibSelected "") (CellSelected "") (ViewSelected ""))
 let((SelectionL newForm formName existingViewObj isSdmType initialMode initialFileName
-     initialFileNameEnabled initialFilter)
+     initialFileNameEnabled)
 	SoftworksDocPathFillFromEnv()
 	isSdmType = member(ViewSelected docViewTypes)
 	; Determine initial mode by checking whether the pre-selected cell view exists.
@@ -284,8 +283,7 @@ let((SelectionL newForm formName existingViewObj isSdmType initialMode initialFi
 	else
 		initialMode            = if(existingViewObj then "Existing cell view (overwrite)" else "New cell view")
 		initialFileName        = if(existingViewObj then car(reverse(parseString(existingViewObj~>writePath "/"))) else "")
-		initialFileNameEnabled = not(existingViewObj)
-		initialFilter          = sdmDocExtFilter(ViewSelected)
+	initialFileNameEnabled = not(existingViewObj)
 		SelectionL = nil
 		SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 			?name       'LibNameField
@@ -322,14 +320,11 @@ let((SelectionL newForm formName existingViewObj isSdmType initialMode initialFi
 			?callback  changeImportModeCB
 			?keepHistory t)
 			5:130 400:30 90))
-		; File filter is type-appropriate at open time; checkViewExistsCB updates it
-		; dynamically when the user changes the view name.
 		SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
 			?name     'FilePathField
 			?mode     'existingFile
 			?prompt   "Source File"
 			?defValue  SoftworksDocImportPathResult
-			?filter    initialFilter
 			?editable  t)
 			5:170 400:30 100))
 		; FileNameField is disabled when overwriting an existing view (auto-filled
