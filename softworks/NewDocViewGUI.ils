@@ -389,4 +389,18 @@ putprop(VrtImport['Softworks] NewDocViewGUI 'NewDocViewGUI)
 ; Must be *outside* the package let: assigning inside the let can leave these
 ; scoped to the let, so SdmXLSX and lmgrCreateMenuItem callbacks cannot see them.
 SdmCombinedGUI = VrtImport['Softworks]->NewDocViewGUI->CombinedGUI
-SdmCreateViewFromFileGUI = VrtImport['Softworks]->NewDocViewGUI->CreateViewFromFileGUI
+
+; ddsLMCMenuItem prepends the menu-item action ID as the first argument before
+; spreading the lib/cell/view selection context, giving 6 args total:
+;   LMgr path:    (actionId lib cell view "" "")  — actionId is not a dd library
+;   Direct path:  (lib cell view)                 — first arg is a dd library name
+; Detect the convention via ddGetLib and route to CreateViewFromFileGUI accordingly.
+procedure( SdmCreateViewFromFileGUI(@rest args)
+  let(((fn VrtImport['Softworks]->NewDocViewGUI->CreateViewFromFileGUI)
+       (a1 or(car(args)    ""))
+       (a2 or(cadr(args)   ""))
+       (a3 or(caddr(args)  ""))
+       (a4 or(cadddr(args) "")))
+    if(ddGetLib(a1)
+      then fn(a1 a2 a3)
+      else fn(a2 a3 a4))))
