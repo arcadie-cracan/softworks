@@ -58,41 +58,18 @@ procedure( sdmDocExtFilter(viewType)
     (("docx") "Word Documents (*.docx);;All Files (*)")
     (t        "Document Files (*.pdf *.pptx *.xlsx *.html *.docx);;All Files (*)")))
 
-; "Import to" cyclic callback — enables/disables FileNameField based on mode.
-; Existing mode: populate FileNameField from the stored view file name (readonly).
-; New cell view: restore editable and default to the source file's basename.
+; "Import to" cyclic callback.
+; FileNameField has been removed; the file name is derived automatically in
+; createViewFromFileCB, so no UI update is needed on mode change.
 procedure( changeImportModeCB(field scope item)
-  progn(
-    let(((lib  scope->LibNameField->value)
-         (cell scope->CellNameField->value)
-         (view scope->ViewNameField->value)
-         viewObj)
-      if(equal(item "Existing cell view (overwrite)")
-        then
-          viewObj = ddGetObj(lib cell view nil nil "r")
-          scope->FileNameField->value =
-            if(viewObj
-              then car(reverse(parseString(viewObj~>writePath "/")))
-              else "")
-          scope->FileNameField->enabled = nil
-        else
-          scope->FileNameField->value =
-            or(car(reverse(parseString(scope->FilePathField->value "/"))) "")
-          scope->FileNameField->enabled = t))
-    nil))
+  nil)
 
 ; ViewNameField callback — validates the view type and auto-selects the dropdown.
 ;
-; Three outcomes based on view name:
-;   1. Recognised Softworks doc type AND cell view exists
-;        → "Existing cell view (overwrite)", FileNameField = stored file name (readonly),
-;          file filter locked to the matching extension.
-;   2. Recognised Softworks doc type AND cell view does NOT exist
-;        → "New cell view", FileNameField editable,
-;          file filter locked to the matching extension.
-;   3. Unknown / non-Softworks view type
-;        → import locked: both ImportNewDropdown and FilePathField disabled,
-;          FileNameField cleared and disabled (import is impossible for this type).
+; Two outcomes based on view name:
+;   Recognised Softworks doc type AND cell view exists  → "Existing cell view (overwrite)"
+;   Recognised Softworks doc type AND cell view absent  → "New cell view"
+;   Unknown / non-Softworks type                        → import locked (controls disabled)
 procedure( checkViewExistsCB(field scope)
   let(((lib     scope->LibNameField->value)
        (cell    scope->CellNameField->value)
@@ -101,27 +78,19 @@ procedure( checkViewExistsCB(field scope)
     when(view != ""
       isSdmType = member(view docViewTypes)
       if(not(isSdmType) then
-        ; ── Unrecognised type: lock the form ─────────────────────────────
+        ; ── Unrecognised type: lock import controls ───────────────────────
         scope->ImportNewDropdown->enabled = nil
         scope->FilePathField->enabled     = nil
-        scope->FileNameField->value       = ""
-        scope->FileNameField->enabled     = nil
       else
-        ; ── Recognised Softworks type ────────────────────────────────────
-        ; Restore controls and set the type-appropriate file filter.
+        ; ── Recognised Softworks type ─────────────────────────────────────
         scope->ImportNewDropdown->enabled = t
         scope->FilePathField->enabled     = t
         viewObj = when(lib != "" && cell != ""
           ddGetObj(lib cell view nil nil "r"))
-        if(viewObj then
-          scope->ImportNewDropdown->value = "Existing cell view (overwrite)"
-          scope->FileNameField->value     = car(reverse(parseString(viewObj~>writePath "/")))
-          scope->FileNameField->enabled   = nil
-        else
-          scope->ImportNewDropdown->value = "New cell view"
-          scope->FileNameField->value     =
-            or(car(reverse(parseString(scope->FilePathField->value "/"))) "")
-          scope->FileNameField->enabled   = t))))
+        scope->ImportNewDropdown->value =
+          if(viewObj
+            then "Existing cell view (overwrite)"
+            else "New cell view"))))
   nil)
 
 ; Callback for the New Documentation Cell View form (DataTrigger path).
@@ -178,8 +147,9 @@ let((LibName CellName ViewName FileName viewFileObj cpSuccess)
 ))
 
 ; Callback for the Import Document as Cell View form (Library Manager path).
-; Both modes copy from the selected source file; the only difference is whether
-; the target cell view already exists (prompts to overwrite) or is brand new.
+; FileName is derived automatically — not read from a form field:
+;   Existing mode  →  basename of the stored view file (preserves the on-disk name)
+;   New mode       →  CellName + "." + ViewName  (e.g. "Design_Manual.pdf")
 procedure( createViewFromFileCB( form )
 let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess mode)
 	if( form == nil then
@@ -189,24 +159,20 @@ let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess
 	CellName = form->CellNameField->value
 	ViewName = form->ViewNameField->value
 	FilePath = form->FilePathField->value
-	FileName = form->FileNameField->value
 	mode     = form->ImportNewDropdown->value
-	; Reject non-Softworks view types early — the form should have prevented this
-	; via checkViewExistsCB, but guard here as a belt-and-suspenders check.
+	; Belt-and-suspenders type guard (checkViewExistsCB should have blocked this earlier).
 	unless(member(ViewName docViewTypes)
 		error("Cannot import: view type '%s' is not a registered Softworks document type (supported: %s)"
 		      ViewName buildString(docViewTypes ", ")))
-	; Default file name to source basename when FileNameField is left blank.
-	cond(
-	  ((neq SoftworksBlankStringp(FileName) nil)
-	   FileName = car(reverse(parseString(FilePath "/")))))
-	if(!CheckExtension(FileName)
-		error("The file %s does not have a supported file extension" FileName)
+	; Validate the source file has a supported extension.
+	if(!CheckExtension(FilePath)
+		error("Source file '%s' does not have a supported document extension" FilePath)
 	)
 	if(equal(mode "Existing cell view (overwrite)") then
 		; ── Overwrite existing ───────────────────────────────────────────
 		viewFileObj = ddGetObj(LibName CellName ViewName nil nil "r")
 		if( viewFileObj then
+			FileName  = car(reverse(parseString(viewFileObj~>writePath "/")))
 			overwrite = hiDisplayAppDBox(
 				?name 'OverwriteDBox
 				?dboxBanner "Overwrite Existing Cell View?"
@@ -215,10 +181,13 @@ let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess
 			when(overwrite && ddNeedCheckout(viewFileObj)
 				ddCheckout(viewFileObj))
 		else
-			overwrite = t  ; view no longer exists — create it anyway
+			; View disappeared between form-open and OK — fall through as new.
+			FileName  = strcat(CellName "." ViewName)
+			overwrite = t
 		)
 	else
 		; ── New cell view ────────────────────────────────────────────────
+		FileName  = strcat(CellName "." ViewName)
 		overwrite = t
 	) ; if mode
 	when(overwrite
@@ -235,7 +204,7 @@ let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess
 	hiFormUnmap(form)
 	cond(
 	  ((neq cpSuccess nil)
-	   launchDocEditor(viewFileObj~>writePath car(reverse(parseString(FileName "."))))))
+	   launchDocEditor(viewFileObj~>writePath ViewName)))
 ))
 
 ; DataTrigger path: open when view doesn't exist — New cell view only.
@@ -264,8 +233,7 @@ let((SelectionL newForm formName)
 
 ; Library Manager path: import an existing file into either an existing or new cell view.
 procedure( CreateViewFromFileGUI(@optional (LibSelected "") (CellSelected "") (ViewSelected ""))
-let((SelectionL newForm formName existingViewObj isSdmType initialMode initialFileName
-     initialFileNameEnabled)
+let((SelectionL newForm formName existingViewObj isSdmType initialMode)
 	SoftworksDocPathFillFromEnv()
 	isSdmType = member(ViewSelected docViewTypes)
 	; Determine initial mode by checking whether the pre-selected cell view exists.
@@ -281,9 +249,7 @@ let((SelectionL newForm formName existingViewObj isSdmType initialMode initialFi
 		     LibSelected CellSelected ViewSelected ViewSelected)
 		nil
 	else
-		initialMode            = if(existingViewObj then "Existing cell view (overwrite)" else "New cell view")
-		initialFileName        = if(existingViewObj then car(reverse(parseString(existingViewObj~>writePath "/"))) else "")
-	initialFileNameEnabled = not(existingViewObj)
+	initialMode = if(existingViewObj then "Existing cell view (overwrite)" else "New cell view")
 		SelectionL = nil
 		SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 			?name       'LibNameField
@@ -327,17 +293,9 @@ let((SelectionL newForm formName existingViewObj isSdmType initialMode initialFi
 			?defValue  SoftworksDocImportPathResult
 			?editable  t)
 			5:170 400:30 100))
-		; FileNameField is disabled when overwriting an existing view (auto-filled
-		; from the stored file name); editable when creating a new view.
-		SelectionL = tconc(SelectionL list(hiCreateStringField(
-			?name      'FileNameField
-			?prompt    "File Name"
-			?defValue  initialFileName
-			?toolTip   "Auto-filled when overwriting an existing view; editable for new views (blank = use source file name)"
-			?modifyCallback CheckFileName
-			?editable  t
-			?enabled   initialFileNameEnabled)
-			5:210 400:30 100))
+		; FileNameField removed: the file name is derived automatically.
+		;   Existing mode  →  basename of the current view's master file
+		;   New mode       →  CellName + "." + ViewName  (e.g. "Design_Manual.pdf")
 		formName = gensym('importFileDocForm)
 		newForm = hiCreateAppForm(
 			?name formName
