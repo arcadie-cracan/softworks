@@ -46,6 +46,41 @@ procedure( launchDocEditor(fp ext)
      let(((m VrtImport['Softworks]->DOCX))
        cond(((neq procedurep(m->startReader) nil) m->startReader(fp)))))))
 
+; Toggles FilePathField (Import mode) vs ContentsOption (New mode).
+procedure( changeImportModeCB(field scope item)
+  progn(
+    if(equal(item "New")
+      then
+        scope->FilePathField->invisible = t
+        scope->ContentsOption->invisible = nil
+      else
+        scope->ContentsOption->invisible = t
+        scope->FilePathField->invisible = nil)
+    nil))
+
+; ContentsOption callback for the combined Import/New form.
+; Updates both the FileNameField extension and the ViewNameField to stay in sync.
+procedure( updateImportNewContents(field scope item)
+  progn(
+    case(item
+      (("Power Point (*.pptx)")
+       scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pptx")
+       scope->ViewNameField->value = "pptx")
+      (("Excel Spreadsheet (*.xlsx)")
+       scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".xlsx")
+       scope->ViewNameField->value = "xlsx")
+      (("PDF (*.pdf)")
+       scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".pdf")
+       scope->ViewNameField->value = "pdf")
+      (("HTML (*.html)")
+       scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".html")
+       scope->ViewNameField->value = "html")
+      (("Word Document (*.docx)")
+       scope->FileNameField->value = strcat(buildString(reverse(cdr(reverse(parseString(scope->FileNameField->value ".")))) "") ".docx")
+       scope->ViewNameField->value = "docx")
+    )
+    nil))
+
 ; Callback for the New Documentation Cell View form (DataTrigger path).
 ; Creates a blank cell view from a template and launches the editor.
 procedure( createViewCB( form )
@@ -99,46 +134,87 @@ let((LibName CellName ViewName FileName viewFileObj cpSuccess)
 	   launchDocEditor(viewFileObj~>writePath car(reverse(parseString(FileName "."))))))
 ))
 
-; Callback for the Import Document as Cell View form (Library Manager path).
-; Copies an existing file as the master of a new (or overwritten) cell view.
+; Callback for the Import/New Document Cell View form (Library Manager path).
+; In Import mode: copies an existing file as the cell view master.
+; In New mode: copies a blank template and launches the editor.
 procedure( createViewFromFileCB( form )
-let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess)
+let((LibName CellName ViewName FileName FilePath viewFileObj overwrite cpSuccess mode)
 	if( form == nil then
 		form = hiGetCurrentForm()
 	)
 	LibName  = form->LibNameField->value
 	CellName = form->CellNameField->value
 	ViewName = form->ViewNameField->value
-	FilePath = form->FilePathField->value
 	FileName = form->FileNameField->value
-	; Default file name to the source file's basename when left blank.
-	cond(
-	  ((neq SoftworksBlankStringp(FileName) nil)
-	   FileName = car(reverse(parseString(FilePath "/")))))
-	if(!CheckExtension(FileName)
-		error("The file %s does not have a supported file extension" FileName)
-	)
-	viewFileObj = ddGetObj(LibName CellName ViewName nil nil "r")
-	if( viewFileObj then
-		overwrite = hiDisplayAppDBox(
-			?name 'OverwriteDBox
-			?dboxBanner "Overwrite Existing Cell View?"
-			?dboxText strcat("Do you want to overwrite the following existing cell view?\nLib: " LibName "\nCell: " CellName "\nView: " ViewName)
-			)
-		when(overwrite && ddNeedCheckout(viewFileObj)
-			ddCheckout(viewFileObj))
-	else
-		overwrite = t
-	)
-	when(overwrite
-		viewFileObj = ddGetObj(LibName CellName ViewName FileName nil "w")
-		cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(FilePath) " " viewFileObj~>writePath))
-		if(not(cpSuccess) then
-			error("The file copy failed.  Could not copy %s to %s" EscapeSpecialCharacters(FilePath) viewFileObj~>writePath)
-		else
-			printf("Imported %s as %s %s %s cell view\n" FilePath LibName CellName ViewName)
+	mode     = form->ImportNewDropdown->value
+
+	if(equal(mode "Import") then
+		; ── Import mode ──────────────────────────────────────────────────
+		FilePath = form->FilePathField->value
+		; Default to source basename when FileNameField is left blank.
+		cond(
+		  ((neq SoftworksBlankStringp(FileName) nil)
+		   FileName = car(reverse(parseString(FilePath "/")))))
+		if(!CheckExtension(FileName)
+			error("The file %s does not have a supported file extension" FileName)
 		)
-	)
+		viewFileObj = ddGetObj(LibName CellName ViewName nil nil "r")
+		if( viewFileObj then
+			overwrite = hiDisplayAppDBox(
+				?name 'OverwriteDBox
+				?dboxBanner "Overwrite Existing Cell View?"
+				?dboxText strcat("Do you want to overwrite the following existing cell view?\nLib: " LibName "\nCell: " CellName "\nView: " ViewName)
+				)
+			when(overwrite && ddNeedCheckout(viewFileObj)
+				ddCheckout(viewFileObj))
+		else
+			overwrite = t
+		)
+		when(overwrite
+			viewFileObj = ddGetObj(LibName CellName ViewName FileName nil "w")
+			cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(FilePath) " " viewFileObj~>writePath))
+			if(not(cpSuccess) then
+				error("The file copy failed.  Could not copy %s to %s" EscapeSpecialCharacters(FilePath) viewFileObj~>writePath)
+			else
+				printf("Imported %s as %s %s %s cell view\n" FilePath LibName CellName ViewName)
+			)
+		)
+	else
+		; ── New mode ─────────────────────────────────────────────────────
+		if(!CheckExtension(FileName)
+			error("The file %s does not have a supported file extension" FileName)
+		)
+		viewFileObj = ddGetObj(LibName CellName ViewName FileName nil "w")
+		if(viewFileObj == nil then
+			error("Cannot create cell view %s %s %s with file name %s" LibName CellName ViewName FileName)
+		)
+		let(((templatePath nil) (writePath viewFileObj~>writePath))
+		  case(form->ContentsOption->value
+			(("Power Point (*.pptx)")
+				templatePath = softworksBlankDocTemplatePath("pptx/pptxTemplate.pptx"))
+			(("Excel Spreadsheet (*.xlsx)")
+				templatePath = softworksBlankDocTemplatePath("xlsx/xlsxTemplate.xlsx"))
+			(("PDF (*.pdf)")
+				templatePath = softworksBlankDocTemplatePath("pdf/pdfTemplate.pdf"))
+			(("HTML (*.html)")
+				templatePath = softworksBlankDocTemplatePath("html/htmlTemplate.html"))
+			(("Word Document (*.docx)")
+				templatePath = softworksBlankDocTemplatePath("docx/docxTemplate.docx"))
+		  )
+		  let(((sourcePath templatePath))
+		    cond(
+			  ((neq isReadable(templatePath) t)
+			   warn("Softworks: template %s not found; falling back to built-in template." templatePath)
+			   sourcePath = strcat(SoftworksInstallDir "/templates/" car(reverse(parseString(templatePath "/"))))))
+		    cpSuccess = shell(strcat("cp -f " EscapeSpecialCharacters(sourcePath) " " EscapeSpecialCharacters(writePath)))
+		    if(not(cpSuccess) then
+			  error("The file copy failed.  Could not copy template %s to %s" sourcePath writePath)
+		    else
+			  printf("Created %s %s %s cell view from template %s\n" LibName CellName ViewName sourcePath)
+		    )
+		  )
+		)
+	) ; if Import/New
 	ddUpdateLibList()
 	hiSetCallbackStatus(form t)
 	hiFormUnmap(form)
@@ -171,10 +247,26 @@ let((SelectionL newForm formName)
 	nil
 ))
 
-; Library Manager path: import an existing file as a cell view master.
+; Library Manager path: import an existing file or create a new blank cell view.
 procedure( CreateViewFromFileGUI(@optional (LibSelected "") (CellSelected "") (ViewSelected ""))
-let((SelectionL newForm formName)
+let((SelectionL newForm formName docKind contentsDef fileNameDef)
 	SoftworksDocPathFillFromEnv()
+	; Derive sensible defaults for ContentsOption and FileNameField from the view name.
+	docKind = SoftworksNormalizeDocKindTag(ViewSelected)
+	contentsDef = cond(
+	  ((neq member(docKind '("xlsx")) nil) "Excel Spreadsheet (*.xlsx)")
+	  ((neq member(docKind '("pptx")) nil) "Power Point (*.pptx)")
+	  ((neq member(docKind '("pdf" "pdf_view")) nil) "PDF (*.pdf)")
+	  ((neq member(docKind '("html")) nil) "HTML (*.html)")
+	  ((neq member(docKind '("docx")) nil) "Word Document (*.docx)")
+	  ((equal 0 0) "Power Point (*.pptx)"))
+	fileNameDef = cond(
+	  ((neq member(docKind '("xlsx")) nil) "Review.xlsx")
+	  ((neq member(docKind '("pptx")) nil) "Review.pptx")
+	  ((neq member(docKind '("pdf" "pdf_view")) nil) "Review.pdf")
+	  ((neq member(docKind '("html")) nil) "Review.html")
+	  ((neq member(docKind '("docx")) nil) "Review.docx")
+	  ((equal 0 0) "Review.pptx"))
 	SelectionL = nil
 	SelectionL = tconc(SelectionL list(ddHiCreateLibraryComboField(
 		?name       'LibNameField
@@ -200,26 +292,45 @@ let((SelectionL newForm formName)
 		?validationType  'allowAny
 		?editable   t)
 		5:90 400:30 60))
+	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
+		?name      'ImportNewDropdown
+		?choices   '("Import" "New")
+		?prompt    "Action"
+		?callback  changeImportModeCB
+		?keepHistory t)
+		5:130 400:30 90))
+	; Import mode: file path selector (visible by default).
 	SelectionL = tconc(SelectionL list(hiCreateFileSelectorField(
 		?name     'FilePathField
 		?mode     'existingFile
 		?prompt   "Source File"
 		?defValue  SoftworksDocImportPathResult
+		?invisible nil
 		?editable  t)
-		5:130 400:30 100))
+		5:170 400:30 100))
+	; New mode: file type picker (invisible by default, same Y as FilePathField).
+	SelectionL = tconc(SelectionL list(hiCreateCyclicField(
+		?name       'ContentsOption
+		?choices    '("Power Point (*.pptx)" "Excel Spreadsheet (*.xlsx)" "PDF (*.pdf)" "HTML (*.html)" "Word Document (*.docx)")
+		?defValue   contentsDef
+		?prompt     "File Type"
+		?callback   updateImportNewContents
+		?invisible  t
+		?keepHistory t)
+		5:170 400:30 100))
 	SelectionL = tconc(SelectionL list(hiCreateStringField(
 		?name      'FileNameField
-		?prompt    "Import as File Name"
-		?defValue  ""
-		?toolTip   "Leave Blank to Use Source File Name"
+		?prompt    "File Name"
+		?defValue  fileNameDef
+		?toolTip   "Leave Blank in Import mode to use the source file name"
 		?modifyCallback CheckFileName
 		?editable  t
 		?enabled   t)
-		5:170 400:30 100))
+		5:210 400:30 100))
 	formName = gensym('importFileDocForm)
 	newForm = hiCreateAppForm(
 		?name formName
-		?formTitle "Import Document as Cell View"
+		?formTitle "Import / New Document Cell View"
 		?fields car(SelectionL)
 		?buttonLayout 'OKCancelApply
 		?callback createViewFromFileCB
@@ -382,6 +493,8 @@ procedure( UpdateFileContents(_field scope item)
 list(nil
 	'CombinedGUI CombinedGUI
 	'CreateViewFromFileGUI CreateViewFromFileGUI
+	'changeImportModeCB changeImportModeCB
+	'updateImportNewContents updateImportNewContents
 ))
 
 putprop(VrtImport['Softworks] NewDocViewGUI 'NewDocViewGUI)
