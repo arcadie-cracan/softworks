@@ -16,14 +16,14 @@ PDF = let((
 procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
 	; Register Firefox as a secondary "Open With" option using the parentType mechanism.
-	; A unique sub-viewType "pdf_firefox" inherits the DataTrigger from parent "pdf".
-	; The DataTrigger reads argList->overRideAppFlag to dispatch to the chosen viewer.
+	; "pdf_firefox" is a sub-viewType of "pdf"; LMgr lists sub-type apps under "Open With".
 	deRegApp(
 		?viewType      "pdf_firefox"
 		?parentType    "pdf"
 		?appName       "firefox_pdf"
+		?dataTrigger   'SdmPdfFirefoxDataTrigger
 		?enableTrigger 'SdmIdleTrigger
-		?widgetType    "none"
+		?appTrigger    'SdmIdleTrigger
 	)
 	out
 ))
@@ -81,13 +81,13 @@ procedure(openPdfWith(viewer argList)
   t
   )))
 
-; Default trigger: dispatches based on which app was chosen in "Open With".
-; Double-click (no override) uses SOFTWORKS_PDF_VIEWER or falls back to evince.
+; Default trigger: double-click on a pdf view. Uses SOFTWORKS_PDF_VIEWER or evince.
 procedure(DataTrigger(@optional argList)
-  let(((override argList->overRideAppFlag))
-    case(override
-      ("firefox_pdf" openPdfWith("firefox" argList))
-      (t             openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList)))))
+  openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList))
+
+; Called when user selects "Open With: firefox_pdf" from LMgr context menu.
+procedure(FirefoxDataTrigger(@optional argList)
+  openPdfWith("firefox" argList))
 
 procedure(startReader(filePath)
   let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince")))
@@ -100,10 +100,14 @@ unless(procedurep(SdmPdfDataTrigger)
     "[Softworks PDF] FATAL: SdmPdfDataTrigger is not a procedure after bind (value=%L); DEBASE pdf trigger will fail."
     SdmPdfDataTrigger)))
 
+SdmPdfFirefoxDataTrigger = FirefoxDataTrigger
+putd('SdmPdfFirefoxDataTrigger SdmPdfFirefoxDataTrigger)
+
 list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
+	'FirefoxDataTrigger FirefoxDataTrigger
 	'startReader startReader
 ))
 
