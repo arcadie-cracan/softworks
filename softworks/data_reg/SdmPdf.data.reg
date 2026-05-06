@@ -7,6 +7,5 @@ DataFormat pdf_df {
 	dfII_ViewType = pdf;
 	Co_Managed = *.pdf master.tag data.dm;
 }
-Tool evince_pdf {  }
-Tool firefox_pdf {  }
+Tool evince_pdf {}
 

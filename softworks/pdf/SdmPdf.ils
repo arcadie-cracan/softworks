@@ -15,28 +15,29 @@ PDF = let((
 ; Register All PDF Custom Cellviews
 procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
-	; Register firefox_pdf as a secondary "Open With" app.
-	; data.reg declares both Tool entries so this second deRegApp should be accepted.
-	errset(
-		deRegApp(
-			?viewType      "pdf"
-			?appName       "firefox_pdf"
-			?enableTrigger 'SdmIdleTrigger
-			?appTrigger    'SdmPdfFirefoxAppTrigger
-			?dataTrigger   'SdmIdleTrigger
-			?widgetType    "none"
-		)
-		t)
+	; Register Firefox as a secondary "Open With" option using the parentType mechanism.
+	; A unique sub-viewType "pdf_firefox" inherits the DataTrigger from parent "pdf".
+	; The DataTrigger reads argList->overRideAppFlag to dispatch to the chosen viewer.
+	deRegApp(
+		?viewType      "pdf_firefox"
+		?parentType    "pdf"
+		?appName       "firefox_pdf"
+		?enableTrigger 'SdmIdleTrigger
+		?widgetType    "none"
+	)
 	out
 ))
 
 ; Unregister Cellviews
 procedure(uninit() let(((out t))
 	Softworks->uninitDeRegApp(viewSetup)
+	when(member("pdf_firefox" deGetAllViewTypes())
+		deUnRegApp("pdf_firefox"))
+	out
 ))
 
 ; Launch the PDF file with an explicit viewer command.
-; Shared by the default DataTrigger and all "Open With" app triggers.
+; Shared by all dispatch paths in DataTrigger.
 procedure(openPdfWith(viewer argList)
   if(not(argList) then
     warn("Softworks: PDF open trigger called with nil argList")
@@ -80,13 +81,13 @@ procedure(openPdfWith(viewer argList)
   t
   )))
 
-; Default trigger: uses SOFTWORKS_PDF_VIEWER env var, falls back to evince.
+; Default trigger: dispatches based on which app was chosen in "Open With".
+; Double-click (no override) uses SOFTWORKS_PDF_VIEWER or falls back to evince.
 procedure(DataTrigger(@optional argList)
-  openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList))
-
-; "Open With > firefox_pdf" trigger.
-procedure(FirefoxAppTrigger(@optional argList)
-  openPdfWith("firefox" argList))
+  let(((override argList->overRideAppFlag))
+    case(override
+      ("firefox_pdf" openPdfWith("firefox" argList))
+      (t             openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList)))))
 
 procedure(startReader(filePath)
   let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince")))
@@ -99,14 +100,10 @@ unless(procedurep(SdmPdfDataTrigger)
     "[Softworks PDF] FATAL: SdmPdfDataTrigger is not a procedure after bind (value=%L); DEBASE pdf trigger will fail."
     SdmPdfDataTrigger)))
 
-SdmPdfFirefoxAppTrigger = FirefoxAppTrigger
-putd('SdmPdfFirefoxAppTrigger SdmPdfFirefoxAppTrigger)
-
 list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
-	'FirefoxAppTrigger FirefoxAppTrigger
 	'startReader startReader
 ))
 
