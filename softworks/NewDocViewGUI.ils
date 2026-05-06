@@ -354,23 +354,23 @@ let((SelectionL newForm formName existingViewObj existingExt
 			?prompt    "Document Type"
 			?enabled   initialDocTypeEnabled)
 			5:130 400:30 90))
-		; Status label: tells the user what will happen on OK.
-		SelectionL = tconc(SelectionL list(hiCreateLabel(
-			?name          'ImportModeLabel
-			?labelText     initialLabel
-			?justification 'left)
-			5:170 460:20 0))
 		SelectionL = tconc(SelectionL list(hiCreateStringField(
 			?name     'FilePathField
 			?prompt   "Source File"
 			?defValue  SoftworksDocImportPathResult
 			?editable  t)
-			5:210 365:30 100))
+			5:170 365:30 100))
 		SelectionL = tconc(SelectionL list(hiCreateButton(
 			?name       'BrowseButton
 			?buttonText "Browse..."
 			?callback   browseSourceFileCB)
-			375:210 85:30 60))
+			375:170 85:30 60))
+		; Status label below source file — indicates what will happen on OK.
+		SelectionL = tconc(SelectionL list(hiCreateLabel(
+			?name          'ImportModeLabel
+			?labelText     initialLabel
+			?justification 'left)
+			5:215 460:20 0))
 		; FileName is derived automatically at OK time (not a form field):
 		;   Existing view  →  basename of ddGetObjWritePath (preserves the on-disk name)
 		;   New view       →  CellName + "." + DocTypeDropdown extension
