@@ -370,7 +370,7 @@ let((SelectionL newForm formName existingViewObj existingExt
 			?name          'ImportModeLabel
 			?labelText     initialLabel
 			?justification 'left)
-			5:215 460:20 0))
+			0:215 460:20 0))
 		; FileName is derived automatically at OK time (not a form field):
 		;   Existing view  →  basename of ddGetObjWritePath (preserves the on-disk name)
 		;   New view       →  CellName + "." + DocTypeDropdown extension
