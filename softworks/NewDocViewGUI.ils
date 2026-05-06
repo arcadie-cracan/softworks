@@ -99,11 +99,11 @@ procedure( sdmGetViewMasterFile(viewObj)
 ; For existing views the dropdown is locked to the detected type, so the filter
 ; automatically matches the on-disk format.
 procedure( browseSourceFileCB(field form)
-  let(((ext    sdmContentsToExt(form->DocTypeDropdown->value))
-       (filter sdmDocExtFilter(or(ext "")))
+  let(((ext     sdmContentsToExt(form->DocTypeDropdown->value))
        (workDir or(form->FilePathField->value SoftworksDocImportPathResult pwd()))
-       file)
-    file = hiGetExistingFile(
+       filter file)
+    filter = sdmDocExtFilter(or(ext ""))
+    file   = hiGetExistingFile(
       ?workingDir workDir
       ?filter     filter
       ?modal      t)
