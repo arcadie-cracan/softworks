@@ -68,7 +68,7 @@ procedure(openPdfWith(viewer argList)
     file = ddGetObjWritePath(objId)
     fileReadable = if(file then isFile(file) else nil)
     if(fileReadable then
-      ipcBeginProcess(strcat(viewer " " EscapeSpecialCharacters(file)) "" nil nil)
+      ipcBeginProcess(strcat(viewer " \"" file "\"") "" nil nil)
     else
       warn("Warning, couldn't open %s / %s / %s as a PDF view" libName cellName viewName))
   else
@@ -91,7 +91,7 @@ procedure(DataTrigger(@optional argList)
 
 procedure(startReader(filePath)
   let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince")))
-    ipcBeginProcess(strcat(viewer " " EscapeSpecialCharacters(filePath)) "" nil nil)))
+    ipcBeginProcess(strcat(viewer " \"" filePath "\"") "" nil nil)))
 
 SdmPdfDataTrigger = DataTrigger
 putd('SdmPdfDataTrigger SdmPdfDataTrigger)
