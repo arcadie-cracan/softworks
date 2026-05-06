@@ -135,13 +135,13 @@ procedure( checkViewExistsCB(field scope)
           scope->DocTypeDropdown->enabled = nil)
         scope->FilePathField->enabled    = t
         scope->BrowseButton->enabled     = t
-        scope->ImportModeLabel->value    = "Will overwrite existing cell view"
+        scope->ImportModeLabel->labelText = "Will overwrite existing cell view"
       else
         ; ── New view: let user pick the document type ──────────────────────
         scope->DocTypeDropdown->enabled  = t
         scope->FilePathField->enabled    = t
         scope->BrowseButton->enabled     = t
-        scope->ImportModeLabel->value    = "Will create a new cell view")))
+        scope->ImportModeLabel->labelText = "Will create a new cell view")))
   nil)
 
 ; Callback for the New Documentation Cell View form (DataTrigger path).
@@ -354,14 +354,12 @@ let((SelectionL newForm formName existingViewObj existingExt
 			?prompt    "Document Type"
 			?enabled   initialDocTypeEnabled)
 			5:130 400:30 90))
-		; Read-only status label: tells the user what will happen on OK.
-		SelectionL = tconc(SelectionL list(hiCreateStringField(
-			?name      'ImportModeLabel
-			?prompt    "Action"
-			?defValue  initialLabel
-			?editable  nil
-			?enabled   t)
-			5:170 400:30 90))
+		; Status label: tells the user what will happen on OK.
+		SelectionL = tconc(SelectionL list(hiCreateLabel(
+			?name          'ImportModeLabel
+			?labelText     initialLabel
+			?justification 'left)
+			5:170 460:20 0))
 		SelectionL = tconc(SelectionL list(hiCreateStringField(
 			?name     'FilePathField
 			?prompt   "Source File"
