@@ -2,10 +2,11 @@
 
 DataFormat pdf_df {
 	Pattern = *.pdf;
-	Preferred_Editor = firefox_pdf;
-	Default_Editor = firefox_pdf;
+	Preferred_Editor = evince_pdf;
+	Default_Editor = evince_pdf;
 	dfII_ViewType = pdf;
 	Co_Managed = *.pdf master.tag data.dm;
 }
+Tool evince_pdf {  }
 Tool firefox_pdf {  }
 

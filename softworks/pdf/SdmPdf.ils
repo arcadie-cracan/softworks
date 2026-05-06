@@ -9,21 +9,24 @@ let((PDF
 PDF = let((
 	(viewSetup '(
 	;(viewType  appName dataTrigger parentType)
-	("pdf" "firefox_pdf" "SdmPdfDataTrigger" nil)
+	("pdf" "evince_pdf" "SdmPdfDataTrigger" nil)
 	)))
 
 ; Register All PDF Custom Cellviews
 procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
-	; Register evince as an "Open With" alternative for pdf views.
-	deRegApp(
-		?viewType      "pdf"
-		?appName       "evince"
-		?enableTrigger 'SdmIdleTrigger
-		?appTrigger    'SdmPdfEvinceAppTrigger
-		?dataTrigger   'SdmIdleTrigger
-		?widgetType    "none"
-	)
+	; Register firefox_pdf as a secondary "Open With" app.
+	; data.reg declares both Tool entries so this second deRegApp should be accepted.
+	errset(
+		deRegApp(
+			?viewType      "pdf"
+			?appName       "firefox_pdf"
+			?enableTrigger 'SdmIdleTrigger
+			?appTrigger    'SdmPdfFirefoxAppTrigger
+			?dataTrigger   'SdmIdleTrigger
+			?widgetType    "none"
+		)
+		t)
 	out
 ))
 
@@ -77,16 +80,16 @@ procedure(openPdfWith(viewer argList)
   t
   )))
 
-; Default trigger: uses SOFTWORKS_PDF_VIEWER env var, falls back to firefox.
+; Default trigger: uses SOFTWORKS_PDF_VIEWER env var, falls back to evince.
 procedure(DataTrigger(@optional argList)
-  openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "firefox") argList))
+  openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList))
 
-; "Open With > evince" trigger.
-procedure(EvinceAppTrigger(@optional argList)
-  openPdfWith("evince" argList))
+; "Open With > firefox_pdf" trigger.
+procedure(FirefoxAppTrigger(@optional argList)
+  openPdfWith("firefox" argList))
 
 procedure(startReader(filePath)
-  let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "firefox")))
+  let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince")))
     ipcBeginProcess(strcat(viewer " " EscapeSpecialCharacters(filePath)) "" nil nil)))
 
 SdmPdfDataTrigger = DataTrigger
@@ -96,14 +99,14 @@ unless(procedurep(SdmPdfDataTrigger)
     "[Softworks PDF] FATAL: SdmPdfDataTrigger is not a procedure after bind (value=%L); DEBASE pdf trigger will fail."
     SdmPdfDataTrigger)))
 
-SdmPdfEvinceAppTrigger = EvinceAppTrigger
-putd('SdmPdfEvinceAppTrigger SdmPdfEvinceAppTrigger)
+SdmPdfFirefoxAppTrigger = FirefoxAppTrigger
+putd('SdmPdfFirefoxAppTrigger SdmPdfFirefoxAppTrigger)
 
 list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
-	'EvinceAppTrigger EvinceAppTrigger
+	'FirefoxAppTrigger FirefoxAppTrigger
 	'startReader startReader
 ))
 
