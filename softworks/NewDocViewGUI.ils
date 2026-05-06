@@ -98,7 +98,7 @@ procedure( sdmGetViewMasterFile(viewObj)
 ; Opens a file chooser filtered to the extension currently selected in DocTypeDropdown.
 ; For existing views the dropdown is locked to the detected type, so the filter
 ; automatically matches the on-disk format.
-procedure( browseSourceFileCB(form)
+procedure( browseSourceFileCB(field form)
   let(((ext    sdmContentsToExt(form->DocTypeDropdown->value))
        (filter sdmDocExtFilter(or(ext "")))
        (workDir or(form->FilePathField->value SoftworksDocImportPathResult pwd()))
