@@ -15,6 +15,16 @@ PDF = let((
 ; Register All PDF Custom Cellviews
 procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
+	; Register evince as an "Open With" alternative for pdf views.
+	deRegApp(
+		?viewType      "pdf"
+		?appName       "evince"
+		?enableTrigger 'SdmIdleTrigger
+		?appTrigger    'SdmPdfEvinceAppTrigger
+		?dataTrigger   'SdmIdleTrigger
+		?widgetType    "none"
+	)
+	out
 ))
 
 ; Unregister Cellviews
@@ -22,61 +32,62 @@ procedure(uninit() let(((out t))
 	Softworks->uninitDeRegApp(viewSetup)
 ))
 
+; Launch the PDF file with an explicit viewer command.
+; Shared by the default DataTrigger and all "Open With" app triggers.
+procedure(openPdfWith(viewer argList)
+  if(not(argList) then
+    warn("Softworks: PDF open trigger called with nil argList")
+    t
+  else
+  let((libName cellName lname file fileReadable objId viewFileName viewName rootType)
+  libName  = argList->libName
+  cellName = argList->cellName
+  viewName = argList->viewName
+  rootType = argList->rootType
+  ; viewFileId is a dd object on argList: use ~>name, not ->name.
+  viewFileName = let((vf)
+    vf = argList->viewFileId
+    if(not(vf) then argList->fileName
+    else if(stringp(vf) then vf
+    else vf~>name)))
+  when(not(viewFileName)
+    viewFileName = ddMapGetViewTypeFileName(
+      if(argList->viewType then argList->viewType else argList->rootType)))
+  when(not(viewFileName)
+    viewFileName = strcat(viewName ".pdf"))
+  lname = if(argList->libId then argList->libId~>name else argList->libName)
+
+  objId = if(viewFileName then ddGetObj(lname cellName viewName viewFileName nil "r") else nil)
+  unless(objId
+    objId = ddGetObj(lname cellName viewName nil nil "r"))
+  if(objId then
+    file = ddGetObjWritePath(objId)
+    fileReadable = if(file then isFile(file) else nil)
+    if(fileReadable then
+      ipcBeginProcess(strcat(viewer " " EscapeSpecialCharacters(file)) "" nil nil)
+    else
+      warn("Warning, couldn't open %s / %s / %s as a PDF view" libName cellName viewName))
+  else
+    ; No existing view — open the import dialog pre-filled with lib/cell/view.
+    if(procedurep(SdmCreateViewFromFileGUI) then
+      SdmCreateViewFromFileGUI(lname cellName viewName)
+    else
+      warn("[Softworks PDF] No PDF view found for %s %s %s. Use 'Import Document as Cell View' in the Library Manager to import a PDF."
+           libName cellName viewName)))
+  t
+  )))
+
+; Default trigger: uses SOFTWORKS_PDF_VIEWER env var, falls back to firefox.
+procedure(DataTrigger(@optional argList)
+  openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "firefox") argList))
+
+; "Open With > evince" trigger.
+procedure(EvinceAppTrigger(@optional argList)
+  openPdfWith("evince" argList))
+
 procedure(startReader(filePath)
   let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "firefox")))
     ipcBeginProcess(strcat(viewer " " EscapeSpecialCharacters(filePath)) "" nil nil)))
-
-; PDF is an import/open-only view type — PDFs are generated artifacts, not created blank.
-; If the view does not exist, direct the user to the Library Manager import action.
-procedure(DataTrigger(@optional argList)
-	if(not(argList) then
-		warn("Softworks: SdmPdfDataTrigger called with nil argList")
-		t
-	else
-	let((libName cellName lname file fileReadable objId viewFileName viewName rootType)
-	libName = argList->libName
-	cellName = argList->cellName
-	viewName = argList->viewName
-	rootType = argList->rootType
-	; viewFileId is a dd object on argList: use ~>name, not ->name (avoids "not a function - nil").
-	viewFileName = let((vf)
-	  vf = argList->viewFileId
-	  if(not(vf) then argList->fileName
-	  else if(stringp(vf) then vf
-	  else vf~>name)))
-	when(not(viewFileName)
-	  viewFileName = ddMapGetViewTypeFileName(
-	    if(argList->viewType then argList->viewType else argList->rootType)))
-	when(not(viewFileName)
-	  viewFileName = strcat(viewName ".pdf"))
-	lname = if(argList->libId then argList->libId~>name else argList->libName)
-
-	objId = if(viewFileName then ddGetObj(lname cellName viewName viewFileName nil "r") else nil)
-	unless(objId
-	  objId = ddGetObj(lname cellName viewName nil nil "r"))
-	if(objId then
-		file = ddGetObjWritePath(objId)
-		fileReadable = if(file then isFile(file) else nil)
-		if(fileReadable then
-			let(((pdf VrtImport['Softworks]->PDF))
-			  cond(
-			    ((eq pdf nil)
-			     warn("[Softworks PDF] PDF module not loaded; cannot open viewer."))
-			    ((neq procedurep(pdf->startReader) nil)
-			     pdf->startReader(file))
-			    ((equal 0 0)
-			     warn("[Softworks PDF] startReader is not a procedure; cannot open viewer."))))
-		else
-			warn("Warning, couldn't open %s / %s / %s as a PDF view" libName cellName viewName))
-	else
-		; No existing view — open the import dialog pre-filled with lib/cell/view.
-		if(procedurep(SdmCreateViewFromFileGUI) then
-			SdmCreateViewFromFileGUI(lname cellName viewName)
-		else
-			warn("[Softworks PDF] No PDF view found for %s %s %s. Use 'Import Document as Cell View' in the Library Manager to import a PDF."
-			     libName cellName viewName)))
-	t
-	)))
 
 SdmPdfDataTrigger = DataTrigger
 putd('SdmPdfDataTrigger SdmPdfDataTrigger)
@@ -85,10 +96,14 @@ unless(procedurep(SdmPdfDataTrigger)
     "[Softworks PDF] FATAL: SdmPdfDataTrigger is not a procedure after bind (value=%L); DEBASE pdf trigger will fail."
     SdmPdfDataTrigger)))
 
+SdmPdfEvinceAppTrigger = EvinceAppTrigger
+putd('SdmPdfEvinceAppTrigger SdmPdfEvinceAppTrigger)
+
 list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
+	'EvinceAppTrigger EvinceAppTrigger
 	'startReader startReader
 ))
 
