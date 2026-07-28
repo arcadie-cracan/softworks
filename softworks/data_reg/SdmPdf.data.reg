@@ -8,4 +8,4 @@ DataFormat pdf_df {
 	Co_Managed = *.pdf master.tag data.dm;
 }
 Tool evince_pdf {}
-
+Tool firefox_pdf {}

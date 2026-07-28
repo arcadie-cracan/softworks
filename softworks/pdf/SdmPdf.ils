@@ -10,29 +10,18 @@ PDF = let((
 	(viewSetup '(
 	;(viewType  appName dataTrigger parentType)
 	("pdf" "evince_pdf" "SdmPdfDataTrigger" nil)
+		("pdf_firefox" "firefox_pdf" nil "pdf")
 	)))
 
 ; Register All PDF Custom Cellviews
 procedure(init() let(((out t))
 	Softworks->initDeRegApp(viewSetup)
-	; Register Firefox as a secondary "Open With" option using the parentType mechanism.
-	; "pdf_firefox" is a sub-viewType of "pdf"; LMgr lists sub-type apps under "Open With".
-	deRegApp(
-		?viewType      "pdf_firefox"
-		?parentType    "pdf"
-		?appName       "firefox_pdf"
-		?dataTrigger   'SdmPdfFirefoxDataTrigger
-		?enableTrigger 'SdmIdleTrigger
-		?appTrigger    'SdmIdleTrigger
-	)
 	out
 ))
 
 ; Unregister Cellviews
 procedure(uninit() let(((out t))
 	Softworks->uninitDeRegApp(viewSetup)
-	when(member("pdf_firefox" deGetAllViewTypes())
-		deUnRegApp("pdf_firefox"))
 	out
 ))
 
@@ -83,11 +72,10 @@ procedure(openPdfWith(viewer argList)
 
 ; Default trigger: double-click on a pdf view. Uses SOFTWORKS_PDF_VIEWER or evince.
 procedure(DataTrigger(@optional argList)
-  openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList))
-
-; Called when user selects "Open With: firefox_pdf" from LMgr context menu.
-procedure(FirefoxDataTrigger(@optional argList)
-  openPdfWith("firefox" argList))
+  let(((app or(argList->appName argList->overRideAppFlag)))
+    case(app
+      ("firefox_pdf" openPdfWith("firefox" argList))
+      (t             openPdfWith(or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince") argList)))))
 
 procedure(startReader(filePath)
   let(((viewer or(getShellEnvVar("SOFTWORKS_PDF_VIEWER") "evince")))
@@ -100,14 +88,11 @@ unless(procedurep(SdmPdfDataTrigger)
     "[Softworks PDF] FATAL: SdmPdfDataTrigger is not a procedure after bind (value=%L); DEBASE pdf trigger will fail."
     SdmPdfDataTrigger)))
 
-SdmPdfFirefoxDataTrigger = FirefoxDataTrigger
-putd('SdmPdfFirefoxDataTrigger SdmPdfFirefoxDataTrigger)
 
 list(nil
 	'init init
 	'uninit uninit
 	'DataTrigger DataTrigger
-	'FirefoxDataTrigger FirefoxDataTrigger
 	'startReader startReader
 ))
 
