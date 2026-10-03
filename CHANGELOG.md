@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1+etti] - 2026-10-03
+
+### Fixed
+
+- `SdmXlsx.data.reg` `Co_Managed` lists its own `*.xlsx` (only `*.xlsm` before).
+
+### Documentation
+
+- README: installing the fork (virtue-skill 0.8.0 from git, `SOFTINCLUDE $VIRTUE_DATA_REG;`), editors for pdf (evince), pptx and xlsx (LibreOffice).
+
 ## [0.5.0+etti] - 2026-10-03
 
 ETTI fork release (arcadie-cracan/softworks); installed from the git tag, not
