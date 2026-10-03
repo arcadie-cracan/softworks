@@ -7,8 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0+etti] - 2026-10-03
+
+ETTI fork release (arcadie-cracan/softworks); installed from the git tag, not
+published to PyPI / conda-forge.
+
+### Added
+
+- PDF views open in **evince** by default (`SOFTWORKS_PDF_VIEWER` overrides); Firefox via *Open With* (`pdf_firefox`).
+- Library Manager import dialog: import a document file as a new or existing Softworks doc view, with a filtered Browse button.
+- Env vars `SOFTWORKS_PROJECT_ROOT`, `SOFTWORKS_DOCS_IMPORT_DIR`, `SOFTWORKS_TEMPLATES_DIR`.
+
+### Fixed
+
+- `pdf_firefox` registration rejected by DEBASE-103030 (no app/data triggers on `parentType` subtypes).
+- `SdmHtml.data.reg` `Co_Managed` list (stray comma, `*.hml` typo).
+- Data triggers callable by DEBASE (`putd` of the `Sdm*DataTrigger` globals) and robust to nil `argList` / `viewFileId`.
+
 ### Changed
 
+- PDF view type renamed `pdf_view` → `pdf`.
 - Target **virtue-skill ≥ 0.8.0** (Virtue uses **`VrtImport`** instead of **`Import`**). SKILL sources use **`VrtImport['…]`** throughout.
 - Register Softworks with **`Package->New`** (`?project_init_dir_path` from the loaded **`Softworks.ils`** path) so **`GetPackageMetadata`** exposes **`project_root_path`** under Virtue’s package model.
 - **`Module->New`** submodule/editor hooks use **`?parent`** (Virtue renamed **`?package`**).
