@@ -35,6 +35,7 @@ the performance of the cell and keep track of it.
 | pdf         | *.pdf          | evince, firefox  | A pdf Document. Opens in evince (`SOFTWORKS_PDF_VIEWER` overrides); firefox via Open With |
 | pptx        | *.pptx         | LibreOffice Impress | A PowerPoint presentation |
 | xlsx        | *.xlsx         | LibreOffice Calc | A spreadsheet               |
+| docx        | *.docx         | LibreOffice Writer | A Word document           |
 | html        | *.html         | firefox          | A web page                  |
 | module      | *.py \*.pyc    | VS Code, gedit   | A Python module             |
 | notebook    | *.ipynb        | VS Code, gedit   | A Python Jupyter notebook   |
@@ -64,7 +65,7 @@ Softworks is MIT licensed, see the [LICENSE file](LICENSE) for more details.
    associated views:
    - Visual Studio Code / vscode
      ```which code```
-   - LibreOffice (pptx, xlsx)
+   - LibreOffice (pptx, xlsx, docx)
      ```which libreoffice```
    - evince (PDF; firefox via Open With)
      ```which evince```

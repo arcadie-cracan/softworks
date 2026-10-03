@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2+etti] - 2026-10-03
+
+### Fixed
+
+- docx, pptx, xlsx (LibreOffice), html and the new-view preview (Firefox) quote the file path, so documents whose path contains spaces open (PDF already did).
+
+### Documentation
+
+- README: `docx` row in the view table (LibreOffice Writer).
+
 ## [0.5.1+etti] - 2026-10-03
 
 ### Fixed
