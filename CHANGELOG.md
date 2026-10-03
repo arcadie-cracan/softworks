@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3+etti] - 2026-10-03
+
+### Fixed
+
+- Documents whose path contains spaces (or quotes) open again. 0.5.2's double
+  quotes did not help: `ipcBeginProcess` drops double quotes, splits at spaces
+  and expands `$VARS` itself. All launches (pdf, docx, pptx, xlsx, html, the
+  new-view preview) now go through `SdmLaunchWithFile`, which passes the path
+  in `SOFTWORKS_LAUNCH_FILE` to `bin/launch_with_file.sh`. A literal `$NAME`
+  inside a path is still expanded by `setShellEnvVar`.
+
 ## [0.5.2+etti] - 2026-10-03
 
 ### Fixed

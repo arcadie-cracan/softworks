@@ -143,10 +143,22 @@ procedure(softworksProjectDocDir()
   )
 )
 
+; Launch an external viewer/editor on one file. ipcBeginProcess does its own
+; tokenizing: it drops double quotes and splits at spaces, and expands $VARS
+; (even inside single quotes), so a path cannot be quoted on its command line.
+; The path travels in SOFTWORKS_LAUNCH_FILE instead and bin/launch_with_file.sh
+; appends it as one argument. prefix: program and its options, e.g.
+; "libreoffice --writer" (no path, no $). Limitation: setShellEnvVar expands a
+; literal $NAME inside the path itself.
+procedure(launchWithFile(prefix filePath)
+  setShellEnvVar("SOFTWORKS_LAUNCH_FILE" filePath)
+  ipcBeginProcess(strcat("sh " SoftworksInstallDir "/bin/launch_with_file.sh " prefix) "" nil nil))
+
 ; Alist/VrtImport *->* accessors can be nil on some builds; NewDocViewGUI and others need these
 ; globals to be real procedures. Value-cell assignment is not enough in SKILL++: calls like
 ; softworksProjectDocDir() use the function obarray; use putd to register the funobj.
 SdmIdleTrigger = IdleTrigger
+SdmLaunchWithFile = launchWithFile
 softworksProjectDocDir = softworksProjectDocDir
 SoftworksProjectDocDir = softworksProjectDocDir
 softworksEffectiveProjectRoot = softworksEffectiveProjectRoot
@@ -158,6 +170,7 @@ SoftworksBlankDocTemplatePath = softworksBlankDocTemplatePath
 softworksCreateDocViewFromTemplate = softworksCreateDocViewFromTemplate
 SoftworksCreateDocViewFromTemplate = softworksCreateDocViewFromTemplate
 putd('SdmIdleTrigger IdleTrigger)
+putd('SdmLaunchWithFile launchWithFile)
 putd('softworksProjectDocDir softworksProjectDocDir)
 putd('SoftworksProjectDocDir softworksProjectDocDir)
 putd('softworksEffectiveProjectRoot softworksEffectiveProjectRoot)
