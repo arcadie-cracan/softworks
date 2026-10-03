@@ -5,7 +5,7 @@ DataFormat xlsx_df {
 	Preferred_Editor = libreoffice_xlsx;
 	Default_Editor = libreoffice_xlsx;
 	dfII_ViewType = xlsx;
-	Co_Managed = master.tag data.dm *.xlsm;
+	Co_Managed = *.xlsx *.xlsm master.tag data.dm;
 }
 Tool libreoffice_xlsx {  }
 
