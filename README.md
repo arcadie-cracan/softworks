@@ -32,7 +32,7 @@ the performance of the cell and keep track of it.
 
 | View Type   | Extensions     | Editors          | Description                 |
 | ----------- | -------------- | ---------------- | --------------------------- |
-| pdf         | *.pdf          | xpdf             | A pdf Document              |
+| pdf         | *.pdf          | evince, firefox  | A pdf Document. Opens in evince (`SOFTWORKS_PDF_VIEWER` overrides); firefox via Open With |
 | ppt         | *.pptx         | open office      | A power point presentation  |
 | Excel       | *.xlsx \*.xlsm | open office      | A spreadsheet               |
 | html        | *.html         | firefox          | A web page                  |
@@ -66,8 +66,8 @@ Softworks is MIT licensed, see the [LICENSE file](LICENSE) for more details.
      ```which code```
    - Libre office (pptx, xlsx)
      ```which libre```
-   - xpdf (PDF)
-     ```which xpdf```
+   - evince (PDF; firefox via Open With)
+     ```which evince```
    - firefox (HTML)
      ```which firefox```
 
