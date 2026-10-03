@@ -90,3 +90,44 @@ Pip:
 ```bash
 pip install softworks
 ```
+
+### Installing this fork (arcadie-cracan/softworks)
+
+`conda install softworks` and `pip install softworks` install the upstream
+cascode-labs release (0.4.0), not this fork. Install the fork from a git tag
+instead (e.g. `v0.5.0+etti`).
+
+This fork requires **virtue-skill ≥ 0.8.0**, which is not published on PyPI
+(the latest there is 0.4.1). Upstream v0.8.0 exists only in git, as the
+untagged commit `6c202a2` of
+[cascode-labs/virtue](https://github.com/cascode-labs/virtue), so install
+virtue-skill from git first, or pip fails to resolve the dependency:
+
+```bash
+pip install "virtue-skill @ git+https://github.com/cascode-labs/virtue.git@6c202a287104cd34c77358927486c5311d477ecc"
+pip install "softworks @ git+https://github.com/arcadie-cracan/softworks.git@v0.5.0+etti"
+```
+
+In a conda environment file, list both under `pip:` and keep `softworks`
+out of the conda dependencies:
+
+```yaml
+dependencies:
+  - python=3.12
+  - pip
+  - git
+  - pip:
+    - virtue-skill @ git+https://github.com/cascode-labs/virtue.git@6c202a287104cd34c77358927486c5311d477ecc
+    - softworks @ git+https://github.com/arcadie-cracan/softworks.git@v0.5.0+etti
+```
+
+Virtuoso reads the view types only from `data.reg` files on its search path
+(the working directory, `CDS_WORKAREA`, `$HOME`). Include the
+`virtue-environment.data.reg` that Virtue generates in its package directory
+from one of them, or no Softworks view type is recognized
+(`ddsServOpen: Unable to find view type`). The ETTI project modules export
+its path as `VIRTUE_DATA_REG`, and `data.reg` expands variables:
+
+```
+SOFTINCLUDE $VIRTUE_DATA_REG;
+```
